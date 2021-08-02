@@ -328,6 +328,11 @@ public class PlayerControlView extends FrameLayout {
     private static final String IC_PREVIOUS = "ic_previous.png";
     private static final String IC_FAST_FORWARD = "ic_fast_forward.png";
     private static final String IC_REWIND = "ic_rewind.png";
+    private static final String IC_REPEAT_OFF = "ic_repeat_off.png";
+    private static final String IC_REPEAT_ONE = "ic_repeat_one.png";
+    private static final String IC_REPEAT_ALL = "ic_repeat_all.png";
+    private static final String IC_SHUFFLE_ON = "ic_shuffle_on.png";
+    private static final String IC_SHUFFLE_OFF = "ic_shuffle_off.png";
     private static final String LOG_TAG = "ExoplayerUi";
 
     private final ComponentListener componentListener;
@@ -363,11 +368,11 @@ public class PlayerControlView extends FrameLayout {
     private final Runnable updateProgressAction;
     private final Runnable hideAction;
 
-    private final Drawable repeatOffButtonDrawable = null;
-    private final Drawable repeatOneButtonDrawable = null;
-    private final Drawable repeatAllButtonDrawable = null;
-    private final Drawable shuffleOnButtonDrawable = null;
-    private final Drawable shuffleOffButtonDrawable = null;
+    private Drawable repeatOffButtonDrawable;
+    private Drawable repeatOneButtonDrawable;
+    private Drawable repeatAllButtonDrawable;
+    private Drawable shuffleOnButtonDrawable;
+    private Drawable shuffleOffButtonDrawable;
     private final float buttonAlphaEnabled;
     private final float buttonAlphaDisabled;
 
@@ -495,13 +500,19 @@ public class PlayerControlView extends FrameLayout {
         nextButton = createImageButton(context, getDrawable(context, IC_NEXT));
         // Previous Button
         previousButton = createImageButton(context, getDrawable(context, IC_PREVIOUS));
+        // Repeat Toggle Button
+        repeatToggleButton = createImageButton(context, null);
+        // Shuffle Button
+        shuffleButton = createImageButton(context, null);
 
         // Add buttons to controls container
         controlsContainer.addView(previousButton);
+        controlsContainer.addView(repeatToggleButton);
         controlsContainer.addView(rewindButton);
         controlsContainer.addView(playButton);
         controlsContainer.addView(pauseButton);
         controlsContainer.addView(fastForwardButton);
+        controlsContainer.addView(shuffleButton);
         controlsContainer.addView(nextButton);
 
         // Video details container
@@ -554,15 +565,10 @@ public class PlayerControlView extends FrameLayout {
         fastForwardButton.setOnClickListener(componentListener);
         previousButton.setOnClickListener(componentListener);
         nextButton.setOnClickListener(componentListener);
+        shuffleButton.setOnClickListener(componentListener);
+        repeatToggleButton.setOnClickListener(componentListener);
 
-        repeatToggleButton = null;
-        if (repeatToggleButton != null) {
-            repeatToggleButton.setOnClickListener(componentListener);
-        }
-        shuffleButton = null;
-        if (shuffleButton != null) {
-            shuffleButton.setOnClickListener(componentListener);
-        }
+
         vrButton = null;
         setShowVrButton(false);
         updateButton(false, false, vrButton);
@@ -572,6 +578,7 @@ public class PlayerControlView extends FrameLayout {
         buttonAlphaDisabled = (float) 33 / 100;
 
         addView(rootView);
+        updateIcons();
     }
 
     private int convertToDp(Context context, float dip) {
@@ -581,7 +588,7 @@ public class PlayerControlView extends FrameLayout {
 
     private ImageButton createImageButton(Context context, Drawable drawable) {
         ImageButton button = new ImageButton(context);
-        button.setLayoutParams(new ViewGroup.LayoutParams(convertToDp(context, 72), convertToDp(context, 52)));
+        button.setLayoutParams(new ViewGroup.LayoutParams(convertToDp(context, 50), convertToDp(context, 50)));
         button.setImageDrawable(drawable);
         button.setBackgroundColor(Color.parseColor("#00000000"));
         button.setScaleType(ImageView.ScaleType.FIT_CENTER);
@@ -632,14 +639,19 @@ public class PlayerControlView extends FrameLayout {
 
     private void updateIcons() {
         try {
+            repeatOffButtonDrawable = getDrawable(context, IC_REPEAT_OFF);
+            repeatOneButtonDrawable = getDrawable(context, IC_REPEAT_ONE);
+            repeatAllButtonDrawable = getDrawable(context, IC_REPEAT_ALL);
+            shuffleOnButtonDrawable = getDrawable(context, IC_SHUFFLE_ON);
+            shuffleOffButtonDrawable = getDrawable(context, IC_SHUFFLE_OFF);
             ((ImageButton) this.playButton).setImageDrawable(this.getDrawable(this.context, "ic_play.png"));
             ((ImageButton) this.pauseButton).setImageDrawable(this.getDrawable(this.context, "ic_pause.png"));
             ((ImageButton) this.fastForwardButton).setImageDrawable(this.getDrawable(this.context, "ic_fast_forward.png"));
             ((ImageButton) this.rewindButton).setImageDrawable(this.getDrawable(this.context, "ic_rewind.png"));
             ((ImageButton) this.nextButton).setImageDrawable(this.getDrawable(this.context, "ic_next.png"));
             ((ImageButton) this.previousButton).setImageDrawable(this.getDrawable(this.context, "ic_previous.png"));
-        } catch (Exception var2) {
-            Log.e(LOG_TAG, "updateIcons | Error :" + var2);
+        } catch (Exception e) {
+            Log.e(LOG_TAG, "updateIcons | Error :" + e);
         }
 
     }

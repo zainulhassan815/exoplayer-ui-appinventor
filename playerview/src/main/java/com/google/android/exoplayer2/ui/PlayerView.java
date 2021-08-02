@@ -45,8 +45,10 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+
 import androidx.annotation.IntDef;
 import androidx.annotation.Nullable;
+
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.ControlDispatcher;
 import com.google.android.exoplayer2.DefaultControlDispatcher;
@@ -67,6 +69,7 @@ import com.google.android.exoplayer2.util.Assertions;
 import com.google.android.exoplayer2.util.ErrorMessageProvider;
 import com.google.android.exoplayer2.util.RepeatModeUtil;
 import com.google.android.exoplayer2.video.VideoDecoderGLSurfaceView;
+import com.google.android.exoplayer2.video.VideoSize;
 import com.google.android.exoplayer2.video.spherical.SphericalGLSurfaceView;
 import com.google.common.collect.ImmutableList;
 
@@ -1542,8 +1545,13 @@ public class PlayerView extends FrameLayout implements AdViewProvider {
         // VideoListener implementation
 
         @Override
-        public void onVideoSizeChanged(
-                int width, int height, int unappliedRotationDegrees, float pixelWidthHeightRatio) {
+        public void onVideoSizeChanged(VideoSize videoSize) {
+
+            int width = videoSize.width;
+            int height = videoSize.height;
+            int unappliedRotationDegrees = videoSize.unappliedRotationDegrees;
+            float pixelWidthHeightRatio = videoSize.pixelWidthHeightRatio;
+
             float videoAspectRatio =
                     (height == 0 || width == 0) ? 1 : (width * pixelWidthHeightRatio) / height;
 
