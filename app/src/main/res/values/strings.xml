@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">videoplayer</string>
+    <string name="set_tracks">Set Tracks</string>
 </resources>
