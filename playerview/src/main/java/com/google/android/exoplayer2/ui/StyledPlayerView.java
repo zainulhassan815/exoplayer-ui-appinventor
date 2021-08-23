@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The Android Open Source Project
+ * Copyright 2019 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,12 @@ package com.google.android.exoplayer2.ui;
 
 import static com.google.android.exoplayer2.Player.COMMAND_GET_TEXT;
 import static com.google.android.exoplayer2.Player.COMMAND_SET_VIDEO_SURFACE;
+import static com.google.android.exoplayer2.util.Assertions.checkNotNull;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.ColorStateList;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -64,11 +66,11 @@ import com.google.android.exoplayer2.source.TrackGroupArray;
 import com.google.android.exoplayer2.text.Cue;
 import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 import com.google.android.exoplayer2.trackselection.TrackSelectionUtil;
+import com.google.android.exoplayer2.ui.AspectRatioFrameLayout.ResizeMode;
 import com.google.android.exoplayer2.util.Assertions;
 import com.google.android.exoplayer2.util.ErrorMessageProvider;
 import com.google.android.exoplayer2.util.RepeatModeUtil;
 import com.google.android.exoplayer2.video.VideoDecoderGLSurfaceView;
-import com.google.android.exoplayer2.video.VideoSize;
 import com.google.android.exoplayer2.video.spherical.SphericalGLSurfaceView;
 import com.google.common.collect.ImmutableList;
 
@@ -80,15 +82,15 @@ import java.util.List;
 
 /**
  * A high level view for {@link Player} media playbacks. It displays video, subtitles and album art
- * during playback, and displays playback controls using a {@link PlayerControlView}.
+ * during playback, and displays playback controls using a {@link StyledPlayerControlView}.
  *
- * <p>A PlayerView can be customized by setting attributes (or calling corresponding methods),
+ * <p>A StyledPlayerView can be customized by setting attributes (or calling corresponding methods),
  * overriding drawables, overriding the view's layout file, or by specifying a custom view layout
  * file.
  *
  * <h3>Attributes</h3>
  * <p>
- * The following attributes can be set on a PlayerView when used in a layout XML file:
+ * The following attributes can be set on a StyledPlayerView when used in a layout XML file:
  *
  * <ul>
  *   <li><b>{@code use_artwork}</b> - Whether artwork is used if available in audio streams.
@@ -164,33 +166,33 @@ import java.util.List;
  *       for more details.
  *       <ul>
  *         <li>Corresponding method: None
- *         <li>Default: {@code R.layout.exo_player_view}
+ *         <li>Default: {@code R.layout.exo_styled_player_view}
  *       </ul>
  *   <li><b>{@code controller_layout_id}</b> - Specifies the id of the layout resource to be
- *       inflated by the child {@link PlayerControlView}. See below for more details.
+ *       inflated by the child {@link StyledPlayerControlView}. See below for more details.
  *       <ul>
  *         <li>Corresponding method: None
- *         <li>Default: {@code R.layout.exo_player_control_view}
+ *         <li>Default: {@code R.layout.exo_styled_player_control_view}
  *       </ul>
- *   <li>All attributes that can be set on {@link PlayerControlView} and {@link DefaultTimeBar} can
- *       also be set on a PlayerView, and will be propagated to the inflated {@link
- *       PlayerControlView} unless the layout is overridden to specify a custom {@code
- *       exo_controller} (see below).
+ *   <li>All attributes that can be set on {@link StyledPlayerControlView} and {@link
+ *       DefaultTimeBar} can also be set on a StyledPlayerView, and will be propagated to the
+ *       inflated {@link StyledPlayerControlView} unless the layout is overridden to specify a
+ *       custom {@code exo_controller} (see below).
  * </ul>
  *
  * <h3>Overriding drawables</h3>
  * <p>
- * The drawables used by {@link PlayerControlView} (with its default layout file) can be overridden
- * by drawables with the same names defined in your application. See the {@link PlayerControlView}
- * documentation for a list of drawables that can be overridden.
+ * The drawables used by {@link StyledPlayerControlView} (with its default layout file) can be
+ * overridden by drawables with the same names defined in your application. See the {@link
+ * StyledPlayerControlView} documentation for a list of drawables that can be overridden.
  *
  * <h3>Overriding the layout file</h3>
  * <p>
- * To customize the layout of PlayerView throughout your app, or just for certain configurations,
- * you can define {@code exo_player_view.xml} layout files in your application {@code res/layout*}
- * directories. These layouts will override the one provided by the ExoPlayer library, and will be
- * inflated for use by PlayerView. The view identifies and binds its children by looking for the
- * following ids:
+ * To customize the layout of StyledPlayerView throughout your app, or just for certain
+ * configurations, you can define {@code exo_styled_player_view.xml} layout files in your
+ * application {@code res/layout*} directories. These layouts will override the one provided by the
+ * ExoPlayer library, and will be inflated for use by StyledPlayerView. The view identifies and
+ * binds its children by looking for the following ids:
  *
  * <ul>
  *   <li><b>{@code exo_content_frame}</b> - A frame whose aspect ratio is resized based on the video
@@ -224,17 +226,17 @@ import java.util.List;
  *         <li>Type: {@link TextView}
  *       </ul>
  *   <li><b>{@code exo_controller_placeholder}</b> - A placeholder that's replaced with the inflated
- *       {@link PlayerControlView}. Ignored if an {@code exo_controller} view exists.
+ *       {@link StyledPlayerControlView}. Ignored if an {@code exo_controller} view exists.
  *       <ul>
  *         <li>Type: {@link View}
  *       </ul>
- *   <li><b>{@code exo_controller}</b> - An already inflated {@link PlayerControlView}. Allows use
- *       of a custom extension of {@link PlayerControlView}. {@link PlayerControlView} and {@link
- *       DefaultTimeBar} attributes set on the PlayerView will not be automatically propagated
- *       through to this instance. If a view exists with this id, any {@code
- *       exo_controller_placeholder} view will be ignored.
+ *   <li><b>{@code exo_controller}</b> - An already inflated {@link StyledPlayerControlView}. Allows
+ *       use of a custom extension of {@link StyledPlayerControlView}. {@link
+ *       StyledPlayerControlView} and {@link DefaultTimeBar} attributes set on the StyledPlayerView
+ *       will not be automatically propagated through to this instance. If a view exists with this
+ *       id, any {@code exo_controller_placeholder} view will be ignored.
  *       <ul>
- *         <li>Type: {@link PlayerControlView}
+ *         <li>Type: {@link StyledPlayerControlView}
  *       </ul>
  *   <li><b>{@code exo_ad_overlay}</b> - A {@link FrameLayout} positioned on top of the player which
  *       is used to show ad UI (if applicable).
@@ -253,13 +255,13 @@ import java.util.List;
  *
  * <h3>Specifying a custom layout file</h3>
  * <p>
- * Defining your own {@code exo_player_view.xml} is useful to customize the layout of PlayerView
- * throughout your application. It's also possible to customize the layout for a single instance in
- * a layout file. This is achieved by setting the {@code player_layout_id} attribute on a
- * PlayerView. This will cause the specified layout to be inflated instead of {@code
- * exo_player_view.xml} for only the instance on which the attribute is set.
+ * Defining your own {@code exo_styled_player_view.xml} is useful to customize the layout of
+ * StyledPlayerView throughout your application. It's also possible to customize the layout for a
+ * single instance in a layout file. This is achieved by setting the {@code player_layout_id}
+ * attribute on a StyledPlayerView. This will cause the specified layout to be inflated instead of
+ * {@code exo_styled_player_view.xml} for only the instance on which the attribute is set.
  */
-public class PlayerView extends FrameLayout implements AdViewProvider {
+public class StyledPlayerView extends FrameLayout implements AdViewProvider {
 
     // LINT.IfChange
 
@@ -278,12 +280,12 @@ public class PlayerView extends FrameLayout implements AdViewProvider {
      */
     public static final int SHOW_BUFFERING_ALWAYS = 2;
     // LINT.IfChange
-    public static final int SURFACE_TYPE_NONE = 0;
+    private static final int SURFACE_TYPE_NONE = 0;
     // LINT.ThenChange(../../../../../../res/values/attrs.xml)
-    public static final int SURFACE_TYPE_SURFACE_VIEW = 1;
-    public static final int SURFACE_TYPE_TEXTURE_VIEW = 2;
-    public static final int SURFACE_TYPE_SPHERICAL_GL_SURFACE_VIEW = 3;
-    public static final int SURFACE_TYPE_VIDEO_DECODER_GL_SURFACE_VIEW = 4;
+    private static final int SURFACE_TYPE_SURFACE_VIEW = 1;
+    private static final int SURFACE_TYPE_TEXTURE_VIEW = 2;
+    private static final int SURFACE_TYPE_SPHERICAL_GL_SURFACE_VIEW = 3;
+    private static final int SURFACE_TYPE_VIDEO_DECODER_GL_SURFACE_VIEW = 4;
     private static final int PICTURE_TYPE_FRONT_COVER = 3;
     // LINT.ThenChange(../../../../../../res/values/attrs.xml)
     private static final int PICTURE_TYPE_NOT_SET = -1;
@@ -304,17 +306,16 @@ public class PlayerView extends FrameLayout implements AdViewProvider {
     @Nullable
     private final TextView errorMessageView;
     @Nullable
-    private final PlayerControlView controller;
+    private final StyledPlayerControlView controller;
     @Nullable
     private final FrameLayout adOverlayFrameLayout;
     @Nullable
     private final FrameLayout overlayFrameLayout;
-    private final boolean debugMode;
     @Nullable
     private Player player;
     private boolean useController;
     @Nullable
-    private PlayerControlView.VisibilityListener controllerVisibilityListener;
+    private StyledPlayerControlView.VisibilityListener controllerVisibilityListener;
     private boolean useArtwork;
     @Nullable
     private Drawable defaultArtwork;
@@ -331,18 +332,15 @@ public class PlayerView extends FrameLayout implements AdViewProvider {
     private boolean controllerHideOnTouch;
     private int textureViewRotation;
     private boolean isTouching;
-
-    public PlayerView(Context context) {
+    public StyledPlayerView(Context context) {
         this(context, new PlayerViewAttributes());
     }
 
-    // Custom constructor
-    public PlayerView(Context context, PlayerViewAttributes attributes) {
-
+    public StyledPlayerView(Context context, PlayerViewAttributes attributes) {
         super(context, null, 0);
-        setBackgroundColor(Color.parseColor("#000000"));
 
         componentListener = new ComponentListener();
+        setBackgroundColor(Color.parseColor("#000000"));
 
         if (isInEditMode()) {
             contentFrame = null;
@@ -356,13 +354,13 @@ public class PlayerView extends FrameLayout implements AdViewProvider {
             controller = null;
             adOverlayFrameLayout = null;
             overlayFrameLayout = null;
-            debugMode = false;
             ImageView logo = new ImageView(context);
             addView(logo);
             return;
         }
 
-        // Get properties from player view attributes class
+        int whiteWithAlpha7 = Color.parseColor("#B3ffffff");
+        int errorMessageBg = Color.parseColor("#AA000000");
 
         int shutterColor = Color.parseColor("#000000");
         boolean useArtwork = attributes.getUseArtwork();
@@ -374,10 +372,6 @@ public class PlayerView extends FrameLayout implements AdViewProvider {
         boolean controllerAutoShow = attributes.getAutoShowController();
         boolean controllerHideDuringAds = attributes.getHideDuringAds();
         int showBuffering = attributes.getShowBuffering();
-        debugMode = attributes.isDebugMode();
-
-        int whiteWithAlpha7 = Color.parseColor("#B3ffffff");
-        int errorMessageBg = Color.parseColor("#AA000000");
 
         FrameLayout rootView = new FrameLayout(context);
         rootView.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
@@ -401,7 +395,7 @@ public class PlayerView extends FrameLayout implements AdViewProvider {
 
         // Buffering view (Circular Progress)
         bufferingView = new ProgressBar(context);
-        bufferingView.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, Gravity.CENTER));
+        bufferingView.setLayoutParams(new LayoutParams(convertToDp(65),convertToDp(65), Gravity.CENTER));
         ((ProgressBar) bufferingView).setIndeterminate(true);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             ((ProgressBar) bufferingView).setIndeterminateTintList(ColorStateList.valueOf(whiteWithAlpha7));
@@ -410,7 +404,7 @@ public class PlayerView extends FrameLayout implements AdViewProvider {
         // Error Message View (Textview)
         errorMessageView = new TextView(context);
         errorMessageView.setLayoutParams(centeredParams());
-        int padding = convertToDp(context, 16f);
+        int padding = convertToDp(16f);
         errorMessageView.setPadding(padding, padding, padding, padding);
         errorMessageView.setBackgroundColor(errorMessageBg);
 
@@ -420,9 +414,6 @@ public class PlayerView extends FrameLayout implements AdViewProvider {
         contentFrame.addView(subtitleView);
         contentFrame.addView(bufferingView);
         contentFrame.addView(errorMessageView);
-
-        // Add UI Elements to root view
-        rootView.addView(contentFrame);
 
         setDescendantFocusability(FOCUS_AFTER_DESCENDANTS);
 
@@ -434,7 +425,7 @@ public class PlayerView extends FrameLayout implements AdViewProvider {
 
         // Create a surface view and insert it into the content frame, if there is one.
         boolean surfaceViewIgnoresVideoAspectRatio = false;
-        if (surfaceType != SURFACE_TYPE_NONE) {
+        if (contentFrame != null && surfaceType != SURFACE_TYPE_NONE) {
             ViewGroup.LayoutParams params =
                     new ViewGroup.LayoutParams(
                             ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
@@ -454,9 +445,9 @@ public class PlayerView extends FrameLayout implements AdViewProvider {
                     break;
             }
             surfaceView.setLayoutParams(params);
-            // We don't want surfaceView to be clickable separately to the PlayerView itself, but we do
-            // want to register as an OnClickListener so that surfaceView implementations can propagate
-            // click events up to the PlayerView by calling their own performClick method.
+            // We don't want surfaceView to be clickable separately to the StyledPlayerView itself, but we
+            // do want to register as an OnClickListener so that surfaceView implementations can propagate
+            // click events up to the StyledPlayerView by calling their own performClick method.
             surfaceView.setOnClickListener(componentListener);
             surfaceView.setClickable(false);
             contentFrame.addView(surfaceView, 0);
@@ -487,21 +478,23 @@ public class PlayerView extends FrameLayout implements AdViewProvider {
         // Error message view.
         errorMessageView.setVisibility(View.GONE);
 
-        // Player Controls View
-        controller = new PlayerControlView(context, new PlayerControlViewAttributes(attributes.isDebugMode()));
-        controller.setLayoutParams(defaultParams());
+        // Playback control view.
+        controller = new StyledPlayerControlView(context, new PlayerControlViewAttributes(attributes.isDebugMode()));
+        controller.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
 
         this.controllerShowTimeoutMs = controllerShowTimeoutMs;
         this.controllerHideOnTouch = controllerHideOnTouch;
         this.controllerAutoShow = controllerAutoShow;
         this.controllerHideDuringAds = controllerHideDuringAds;
         this.useController = useController;
-        hideController();
-        updateContentDescription();
+        controller.hideImmediately();
         controller.addVisibilityListener(/* listener= */ componentListener);
+        updateContentDescription();
 
-        // Add Controls View to root view
+        // Add UI Elements to root view
+        rootView.addView(contentFrame);
         rootView.addView(controller);
+
         addView(rootView);
     }
 
@@ -513,7 +506,9 @@ public class PlayerView extends FrameLayout implements AdViewProvider {
      * @param newPlayerView The new view to attach to the player.
      */
     public static void switchTargetView(
-            Player player, @Nullable PlayerView oldPlayerView, @Nullable PlayerView newPlayerView) {
+            Player player,
+            @Nullable StyledPlayerView oldPlayerView,
+            @Nullable StyledPlayerView newPlayerView) {
         if (oldPlayerView == newPlayerView) {
             return;
         }
@@ -559,8 +554,8 @@ public class PlayerView extends FrameLayout implements AdViewProvider {
         textureView.setTransform(transformMatrix);
     }
 
-    private int convertToDp(Context context, float dip) {
-        DisplayMetrics displayMetric = context.getResources().getDisplayMetrics();
+    private int convertToDp(float dip) {
+        DisplayMetrics displayMetric = Resources.getSystem().getDisplayMetrics();
         return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dip, displayMetric);
     }
 
@@ -584,10 +579,10 @@ public class PlayerView extends FrameLayout implements AdViewProvider {
      * Set the {@link Player} to use.
      *
      * <p>To transition a {@link Player} from targeting one view to another, it's recommended to use
-     * {@link #switchTargetView(Player, PlayerView, PlayerView)} rather than this method. If you do
-     * wish to use this method directly, be sure to attach the player to the new view <em>before</em>
-     * calling {@code setPlayer(null)} to detach it from the old one. This ordering is significantly
-     * more efficient and may allow for more seamless transitions.
+     * {@link #switchTargetView(Player, StyledPlayerView, StyledPlayerView)} rather than this method.
+     * If you do wish to use this method directly, be sure to attach the player to the new view
+     * <em>before</em> calling {@code setPlayer(null)} to detach it from the old one. This ordering is
+     * significantly more efficient and may allow for more seamless transitions.
      *
      * @param player The {@link Player} to use, or {@code null} to detach the current player. Only
      *               players which are accessed on the main thread are supported ({@code
@@ -603,12 +598,10 @@ public class PlayerView extends FrameLayout implements AdViewProvider {
         @Nullable Player oldPlayer = this.player;
         if (oldPlayer != null) {
             oldPlayer.removeListener(componentListener);
-            if (oldPlayer.isCommandAvailable(COMMAND_SET_VIDEO_SURFACE)) {
-                if (surfaceView instanceof TextureView) {
-                    oldPlayer.clearVideoTextureView((TextureView) surfaceView);
-                } else if (surfaceView instanceof SurfaceView) {
-                    oldPlayer.clearVideoSurfaceView((SurfaceView) surfaceView);
-                }
+            if (surfaceView instanceof TextureView) {
+                oldPlayer.clearVideoTextureView((TextureView) surfaceView);
+            } else if (surfaceView instanceof SurfaceView) {
+                oldPlayer.clearVideoSurfaceView((SurfaceView) surfaceView);
             }
         }
         if (subtitleView != null) {
@@ -649,20 +642,20 @@ public class PlayerView extends FrameLayout implements AdViewProvider {
     }
 
     /**
-     * Returns the ResizeMode.
+     * Returns the {@link ResizeMode}.
      */
-    public @AspectRatioFrameLayout.ResizeMode
+    public @ResizeMode
     int getResizeMode() {
         Assertions.checkStateNotNull(contentFrame);
         return contentFrame.getResizeMode();
     }
 
     /**
-     * Sets the ResizeMode
+     * Sets the {@link ResizeMode}.
      *
-     * @param resizeMode The ResizeMode
+     * @param resizeMode The {@link ResizeMode}.
      */
-    public void setResizeMode(@AspectRatioFrameLayout.ResizeMode int resizeMode) {
+    public void setResizeMode(@ResizeMode int resizeMode) {
         Assertions.checkStateNotNull(contentFrame);
         contentFrame.setResizeMode(resizeMode);
     }
@@ -821,7 +814,7 @@ public class PlayerView extends FrameLayout implements AdViewProvider {
 
         boolean isDpadKey = isDpadKey(event.getKeyCode());
         boolean handled = false;
-        if (isDpadKey && useController() && !controller.isVisible()) {
+        if (isDpadKey && useController() && !controller.isFullyVisible()) {
             // Handle the key event by showing the controller.
             maybeShowController(true);
             handled = true;
@@ -849,10 +842,10 @@ public class PlayerView extends FrameLayout implements AdViewProvider {
     }
 
     /**
-     * Returns whether the controller is currently visible.
+     * Returns whether the controller is currently fully visible.
      */
-    public boolean isControllerVisible() {
-        return controller != null && controller.isVisible();
+    public boolean isControllerFullyVisible() {
+        return controller != null && controller.isFullyVisible();
     }
 
     /**
@@ -897,7 +890,7 @@ public class PlayerView extends FrameLayout implements AdViewProvider {
     public void setControllerShowTimeoutMs(int controllerShowTimeoutMs) {
         Assertions.checkStateNotNull(controller);
         this.controllerShowTimeoutMs = controllerShowTimeoutMs;
-        if (controller.isVisible()) {
+        if (controller.isFullyVisible()) {
             // Update the controller's timeout if necessary.
             showController();
         }
@@ -952,13 +945,13 @@ public class PlayerView extends FrameLayout implements AdViewProvider {
     }
 
     /**
-     * Set the {@link PlayerControlView.VisibilityListener}.
+     * Set the {@link StyledPlayerControlView.VisibilityListener}.
      *
      * @param listener The listener to be notified about visibility changes, or null to remove the
      *                 current listener.
      */
     public void setControllerVisibilityListener(
-            @Nullable PlayerControlView.VisibilityListener listener) {
+            @Nullable StyledPlayerControlView.VisibilityListener listener) {
         Assertions.checkStateNotNull(controller);
         if (this.controllerVisibilityListener == listener) {
             return;
@@ -970,6 +963,18 @@ public class PlayerView extends FrameLayout implements AdViewProvider {
         if (listener != null) {
             controller.addVisibilityListener(listener);
         }
+    }
+
+    /**
+     * Sets the {@link StyledPlayerControlView.OnFullScreenModeChangedListener}.
+     *
+     * @param listener The listener to be notified when the fullscreen button is clicked, or null to
+     *                 remove the current listener and hide the fullscreen button.
+     */
+    public void setControllerOnFullScreenModeChangedListener(
+            @Nullable StyledPlayerControlView.OnFullScreenModeChangedListener listener) {
+        Assertions.checkStateNotNull(controller);
+        controller.setOnFullScreenModeChangedListener(listener);
     }
 
     /**
@@ -1038,28 +1043,6 @@ public class PlayerView extends FrameLayout implements AdViewProvider {
     }
 
     /**
-     * @deprecated Use {@link #setControlDispatcher(ControlDispatcher)} with {@link
-     * DefaultControlDispatcher#DefaultControlDispatcher(long, long)}.
-     */
-    @SuppressWarnings("deprecation")
-    @Deprecated
-    public void setRewindIncrementMs(int rewindMs) {
-        Assertions.checkStateNotNull(controller);
-        controller.setRewindIncrementMs(rewindMs);
-    }
-
-    /**
-     * @deprecated Use {@link #setControlDispatcher(ControlDispatcher)} with {@link
-     * DefaultControlDispatcher#DefaultControlDispatcher(long, long)}.
-     */
-    @SuppressWarnings("deprecation")
-    @Deprecated
-    public void setFastForwardIncrementMs(int fastForwardMs) {
-        Assertions.checkStateNotNull(controller);
-        controller.setFastForwardIncrementMs(fastForwardMs);
-    }
-
-    /**
      * Sets which repeat toggle modes are enabled.
      *
      * @param repeatToggleModes A set of {@link RepeatModeUtil.RepeatToggleModes}.
@@ -1077,6 +1060,26 @@ public class PlayerView extends FrameLayout implements AdViewProvider {
     public void setShowShuffleButton(boolean showShuffleButton) {
         Assertions.checkStateNotNull(controller);
         controller.setShowShuffleButton(showShuffleButton);
+    }
+
+    /**
+     * Sets whether the subtitle button is shown.
+     *
+     * @param showSubtitleButton Whether the subtitle button is shown.
+     */
+    public void setShowSubtitleButton(boolean showSubtitleButton) {
+        Assertions.checkStateNotNull(controller);
+        controller.setShowSubtitleButton(showSubtitleButton);
+    }
+
+    /**
+     * Sets whether the vr button is shown.
+     *
+     * @param showVrButton Whether the vr button is shown.
+     */
+    public void setShowVrButton(boolean showVrButton) {
+        Assertions.checkStateNotNull(controller);
+        controller.setShowVrButton(showVrButton);
     }
 
     /**
@@ -1174,8 +1177,7 @@ public class PlayerView extends FrameLayout implements AdViewProvider {
             case MotionEvent.ACTION_UP:
                 if (isTouching) {
                     isTouching = false;
-                    performClick();
-                    return true;
+                    return performClick();
                 }
                 return false;
             default:
@@ -1286,12 +1288,14 @@ public class PlayerView extends FrameLayout implements AdViewProvider {
         if (!useController() || player == null) {
             return false;
         }
-        if (!controller.isVisible()) {
+        if (!controller.isFullyVisible()) {
             maybeShowController(true);
+            return true;
         } else if (controllerHideOnTouch) {
             controller.hide();
+            return true;
         }
-        return true;
+        return false;
     }
 
     /**
@@ -1302,7 +1306,8 @@ public class PlayerView extends FrameLayout implements AdViewProvider {
             return;
         }
         if (useController()) {
-            boolean wasShowingIndefinitely = controller.isVisible() && controller.getShowTimeoutMs() <= 0;
+            boolean wasShowingIndefinitely =
+                    controller.isFullyVisible() && controller.getShowTimeoutMs() <= 0;
             boolean shouldShowIndefinitely = shouldShowControllerIndefinitely();
             if (isForced || wasShowingIndefinitely || shouldShowIndefinitely) {
                 showController(shouldShowIndefinitely);
@@ -1316,9 +1321,10 @@ public class PlayerView extends FrameLayout implements AdViewProvider {
         }
         int playbackState = player.getPlaybackState();
         return controllerAutoShow
+                && !player.getCurrentTimeline().isEmpty()
                 && (playbackState == Player.STATE_IDLE
                 || playbackState == Player.STATE_ENDED
-                || !player.getPlayWhenReady());
+                || !checkNotNull(player).getPlayWhenReady());
     }
 
     private void showController(boolean showIndefinitely) {
@@ -1463,14 +1469,14 @@ public class PlayerView extends FrameLayout implements AdViewProvider {
     private void updateContentDescription() {
         if (controller == null || !useController) {
             setContentDescription(/* contentDescription= */ null);
-        } else if (controller.getVisibility() == View.VISIBLE) {
+        } else if (controller.isFullyVisible()) {
             setContentDescription(
                     /* contentDescription= */ controllerHideOnTouch
-                            ? ""
+                            ? /*getResources().getString(R.string.exo_controls_hide)*/ "Hide player controls"
                             : null);
         } else {
             setContentDescription(
-                    /* contentDescription= */ "");
+                    /* contentDescription= */ /*getResources().getString(R.string.exo_controls_show))*/ "Show player controls");
         }
     }
 
@@ -1509,7 +1515,7 @@ public class PlayerView extends FrameLayout implements AdViewProvider {
             implements Player.Listener,
             OnLayoutChangeListener,
             OnClickListener,
-            PlayerControlView.VisibilityListener {
+            StyledPlayerControlView.VisibilityListener {
 
         private final Period period;
         private @Nullable
@@ -1531,13 +1537,8 @@ public class PlayerView extends FrameLayout implements AdViewProvider {
         // VideoListener implementation
 
         @Override
-        public void onVideoSizeChanged(VideoSize videoSize) {
-
-            int width = videoSize.width;
-            int height = videoSize.height;
-            int unappliedRotationDegrees = videoSize.unappliedRotationDegrees;
-            float pixelWidthHeightRatio = videoSize.pixelWidthHeightRatio;
-
+        public void onVideoSizeChanged(
+                int width, int height, int unappliedRotationDegrees, float pixelWidthHeightRatio) {
             float videoAspectRatio =
                     (height == 0 || width == 0) ? 1 : (width * pixelWidthHeightRatio) / height;
 
@@ -1576,7 +1577,7 @@ public class PlayerView extends FrameLayout implements AdViewProvider {
             // Suppress the update if transitioning to an unprepared period within the same window. This
             // is necessary to avoid closing the shutter when such a transition occurs. See:
             // https://github.com/google/ExoPlayer/issues/5507.
-            Player player = Assertions.checkNotNull(PlayerView.this.player);
+            Player player = checkNotNull(StyledPlayerView.this.player);
             Timeline timeline = player.getCurrentTimeline();
             if (timeline.isEmpty()) {
                 lastPeriodUidWithTracks = null;
@@ -1648,7 +1649,7 @@ public class PlayerView extends FrameLayout implements AdViewProvider {
             toggleControllerVisibility();
         }
 
-        // PlayerControlView.VisibilityListener implementation
+        // StyledPlayerControlView.VisibilityListener implementation
 
         @Override
         public void onVisibilityChange(int visibility) {

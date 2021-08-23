@@ -18,7 +18,6 @@ package com.google.android.exoplayer2.ui;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.Resources;
-import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Point;
@@ -241,13 +240,11 @@ public class DefaultTimeBar extends View implements TimeBar {
     private final CopyOnWriteArraySet<OnScrubListener> listeners;
     private final Point touchPosition;
     private final float density;
-
+    private final ValueAnimator scrubberScalingAnimator;
     private int keyCountIncrement;
     private long keyTimeIncrement;
     private int lastCoarseScrubXPosition;
     private Rect lastExclusionRectangle;
-
-    private ValueAnimator scrubberScalingAnimator;
     private float scrubberScale;
     private boolean scrubberPaddingDisabled;
     private boolean scrubbing;
@@ -357,6 +354,18 @@ public class DefaultTimeBar extends View implements TimeBar {
         }
     }
 
+    private static boolean setDrawableLayoutDirection(Drawable drawable, int layoutDirection) {
+        return Util.SDK_INT >= 23 && drawable.setLayoutDirection(layoutDirection);
+    }
+
+    private static int dpToPx(float density, int dps) {
+        return (int) (dps * density + 0.5f);
+    }
+
+    private static int pxToDp(float density, int px) {
+        return (int) (px / density);
+    }
+
     /**
      * Shows the scrubber handle.
      */
@@ -443,6 +452,8 @@ public class DefaultTimeBar extends View implements TimeBar {
         invalidate(seekBounds);
     }
 
+    // TimeBar implementation.
+
     /**
      * Sets the color for the portion of the time bar after the current played position.
      *
@@ -473,8 +484,6 @@ public class DefaultTimeBar extends View implements TimeBar {
         playedAdMarkerPaint.setColor(playedAdMarkerColor);
         invalidate(seekBounds);
     }
-
-    // TimeBar implementation.
 
     @Override
     public void addListener(OnScrubListener listener) {
@@ -514,6 +523,8 @@ public class DefaultTimeBar extends View implements TimeBar {
         update();
     }
 
+    // View methods.
+
     @Override
     public void setDuration(long duration) {
         this.duration = duration;
@@ -541,8 +552,6 @@ public class DefaultTimeBar extends View implements TimeBar {
         this.playedAdGroups = playedAdGroups;
         update();
     }
-
-    // View methods.
 
     @Override
     public void setEnabled(boolean enabled) {
@@ -704,6 +713,8 @@ public class DefaultTimeBar extends View implements TimeBar {
         }
     }
 
+    // Internal methods.
+
     @Override
     public void onInitializeAccessibilityEvent(AccessibilityEvent event) {
         super.onInitializeAccessibilityEvent(event);
@@ -752,8 +763,6 @@ public class DefaultTimeBar extends View implements TimeBar {
         sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_SELECTED);
         return true;
     }
-
-    // Internal methods.
 
     private void startScrubbing(long scrubPosition) {
         this.scrubPosition = scrubPosition;
@@ -943,17 +952,5 @@ public class DefaultTimeBar extends View implements TimeBar {
 
     private boolean setDrawableLayoutDirection(Drawable drawable) {
         return Util.SDK_INT >= 23 && setDrawableLayoutDirection(drawable, getLayoutDirection());
-    }
-
-    private static boolean setDrawableLayoutDirection(Drawable drawable, int layoutDirection) {
-        return Util.SDK_INT >= 23 && drawable.setLayoutDirection(layoutDirection);
-    }
-
-    private static int dpToPx(float density, int dps) {
-        return (int) (dps * density + 0.5f);
-    }
-
-    private static int pxToDp(float density, int px) {
-        return (int) (px / density);
     }
 }

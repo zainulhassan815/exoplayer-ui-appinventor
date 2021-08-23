@@ -1,80 +1,86 @@
 package com.dreamers.videoplayer
 
-import android.content.Context
-import android.graphics.drawable.Drawable
+import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.widget.FrameLayout
+import android.widget.ImageButton
+import android.widget.LinearLayout
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.SimpleExoPlayer
-import com.google.android.exoplayer2.ui.PlayerView
+import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
+import com.google.android.exoplayer2.ui.StyledPlayerView
+import com.google.android.exoplayer2.util.MimeTypes
 import com.google.android.exoplayer2.util.Util
-import java.io.InputStream
-import java.lang.Exception
-import java.util.*
 
 class MainActivity : AppCompatActivity() {
 
-    private var playerView: PlayerView? = null
+    private var playerView: StyledPlayerView? = null
     private var videoUrl =
-        "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+        "https://bitdash-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8"
     private val music = "https://storage.googleapis.com/exoplayer-test-media-0/Jazz_In_Paris.mp3"
+    private val subtitles =
+        "https://raw.githubusercontent.com/benwfreed/test-subtitles/master/mmvo72166981784.vtt"
     private var player: SimpleExoPlayer? = null
 
     private var currentWindow: Int = 0
     private var playbackPosition: Long = 0L
     private var shouldPlayWhenReady = false
+    private var trackSelector: DefaultTrackSelector? = null
+    private var trackSelectorParameters: DefaultTrackSelector.Parameters? = null
+    var trackSelectorButton: ImageButton? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         val container: FrameLayout = findViewById(R.id.video_container)
-        playerView = PlayerView(this)
+        playerView = StyledPlayerView(this)
         container.addView(
             playerView,
-            FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.MATCH_PARENT,
-                FrameLayout.LayoutParams.MATCH_PARENT
-            )
+            0,
+            LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.MATCH_PARENT
+            ),
         )
-
         initializePlayer()
     }
 
     private fun initializePlayer() {
 
-        val mediaItem1 = MediaItem.fromUri(videoUrl)
-        val mediaItem2 = MediaItem.fromUri(music)
+        trackSelector = DefaultTrackSelector(this)
+        trackSelectorParameters = DefaultTrackSelector.ParametersBuilder(this).build()
+
+        val items = mutableListOf(
+            MediaItem.Builder().setUri(videoUrl).setSubtitles(
+                mutableListOf(
+                    MediaItem.Subtitle(
+                        Uri.parse(subtitles),
+                        MimeTypes.TEXT_VTT,
+                        "en",
+                        C.SELECTION_FLAG_DEFAULT
+                    )
+                ),
+            ).build(),
+            MediaItem.fromUri(music),
+        )
 
         player = SimpleExoPlayer
             .Builder(this)
+            .setTrackSelector(trackSelector!!)
             .build()
             .also { exoplayer ->
-                exoplayer.addMediaItem(mediaItem2)
-                exoplayer.addMediaItem(mediaItem1)
 
+                playerView?.player = exoplayer
+                playerView?.setControllerVisibilityListener { trackSelectorButton?.visibility = it }
+
+                exoplayer.addMediaItems(items)
                 exoplayer.seekTo(currentWindow, playbackPosition)
                 exoplayer.playWhenReady = shouldPlayWhenReady
                 exoplayer.prepare()
             }
-
-        playerView?.player = player
-        playerView?.useArtwork = false
-        playerView?.defaultArtwork = getAssetDrawable(applicationContext,"thumbnail.jpg")
-    }
-
-    private fun getAssetDrawable(context: Context, asset: String): Drawable? {
-        return try {
-            val inputStream : InputStream = context.assets.open(asset)
-            val drawable: Drawable = Drawable.createFromStream(inputStream,null)
-            inputStream.close()
-            drawable
-        } catch (e: Exception) {
-            Log.e("VideoPlayer","getAssetDrawable | Error : $e")
-            null
-        }
     }
 
     private fun releasePlayer() {
@@ -114,6 +120,10 @@ class MainActivity : AppCompatActivity() {
             initializePlayer()
         }
 
+    }
+
+    companion object {
+        private const val LOG_TAG = "ExoplayerTest"
     }
 
 }

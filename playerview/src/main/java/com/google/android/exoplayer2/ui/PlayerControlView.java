@@ -28,15 +28,13 @@ import static com.google.android.exoplayer2.Player.EVENT_TIMELINE_CHANGED;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.graphics.BitmapFactory;
+import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.Typeface;
-import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Looper;
 import android.os.SystemClock;
-import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.util.TypedValue;
@@ -267,37 +265,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 public class PlayerControlView extends FrameLayout {
 
-    static {
-        ExoPlayerLibraryInfo.registerModule("goog.exo.ui");
-    }
-
-    /**
-     * Listener to be notified about changes of the visibility of the UI control.
-     */
-    public interface VisibilityListener {
-
-        /**
-         * Called when the visibility changes.
-         *
-         * @param visibility The new visibility. Either {@link View#VISIBLE} or {@link View#GONE}.
-         */
-        void onVisibilityChange(int visibility);
-    }
-
-    /**
-     * Listener to be notified when progress has been updated.
-     */
-    public interface ProgressUpdateListener {
-
-        /**
-         * Called when progress needs to be updated.
-         *
-         * @param position         The current position.
-         * @param bufferedPosition The current buffered position.
-         */
-        void onProgressUpdate(long position, long bufferedPosition);
-    }
-
     /**
      * The default show timeout, in milliseconds.
      */
@@ -316,12 +283,10 @@ public class PlayerControlView extends FrameLayout {
      * The maximum number of windows that can be shown in a multi-window time bar.
      */
     public static final int MAX_WINDOWS_FOR_MULTI_WINDOW_TIME_BAR = 100;
-
     /**
      * The maximum interval between time bar position updates.
      */
     private static final int MAX_UPDATE_INTERVAL_MS = 1000;
-
     private static final String IC_PLAY = "ic_play.png";
     private static final String IC_PAUSE = "ic_pause.png";
     private static final String IC_NEXT = "ic_next.png";
@@ -334,6 +299,10 @@ public class PlayerControlView extends FrameLayout {
     private static final String IC_SHUFFLE_ON = "ic_shuffle_on.png";
     private static final String IC_SHUFFLE_OFF = "ic_shuffle_off.png";
     private static final String LOG_TAG = "ExoplayerUi";
+
+    static {
+        ExoPlayerLibraryInfo.registerModule("goog.exo.ui");
+    }
 
     private final ComponentListener componentListener;
     private final CopyOnWriteArrayList<VisibilityListener> visibilityListeners;
@@ -367,17 +336,15 @@ public class PlayerControlView extends FrameLayout {
     private final Timeline.Window window;
     private final Runnable updateProgressAction;
     private final Runnable hideAction;
-
+    private final float buttonAlphaEnabled;
+    private final float buttonAlphaDisabled;
+    private final Context context;
+    private final boolean debugMode;
     private Drawable repeatOffButtonDrawable;
     private Drawable repeatOneButtonDrawable;
     private Drawable repeatAllButtonDrawable;
     private Drawable shuffleOnButtonDrawable;
     private Drawable shuffleOffButtonDrawable;
-    private final float buttonAlphaEnabled;
-    private final float buttonAlphaDisabled;
-
-    private boolean debugMode;
-
     @Nullable
     private Player player;
     private ControlDispatcher controlDispatcher;
@@ -385,7 +352,6 @@ public class PlayerControlView extends FrameLayout {
     private ProgressUpdateListener progressUpdateListener;
     @Nullable
     private PlaybackPreparer playbackPreparer;
-
     private boolean isAttachedToWindow;
     private boolean showMultiWindowTimeBar;
     private boolean multiWindowTimeBar;
@@ -406,46 +372,27 @@ public class PlayerControlView extends FrameLayout {
     private boolean[] extraPlayedAdGroups;
     private long currentWindowOffset;
 
-    private final Context context;
-
     public PlayerControlView(Context context) {
-        this(context, /* attrs= */ null);
+        this(context, /* attrs= */ new PlayerControlViewAttributes());
     }
 
-    public PlayerControlView(Context context, @Nullable AttributeSet attrs) {
-        this(context, attrs, /* defStyleAttr= */ 0);
-    }
-
-    public PlayerControlView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
-        this(context, attrs, defStyleAttr, attrs);
-    }
-
-    @SuppressLint("UseCompatLoadingForDrawables")
-    @SuppressWarnings({
-            "nullness:argument.type.incompatible",
-            "nullness:method.invocation.invalid",
-            "nullness:methodref.receiver.bound.invalid"
-    })
-    public PlayerControlView(
-            Context context,
-            @Nullable AttributeSet attrs,
-            int defStyleAttr,
-            @Nullable AttributeSet playbackAttrs) {
-        super(context, attrs, defStyleAttr);
+    public PlayerControlView(Context context, PlayerControlViewAttributes attributes) {
+        super(context, null, 0);
 
         this.context = context;
 
-        showTimeoutMs = DEFAULT_SHOW_TIMEOUT_MS;
-        repeatToggleModes = DEFAULT_REPEAT_TOGGLE_MODES;
-        timeBarMinUpdateIntervalMs = DEFAULT_TIME_BAR_MIN_UPDATE_INTERVAL_MS;
-        hideAtMs = C.TIME_UNSET;
-        showRewindButton = true;
-        showFastForwardButton = true;
-        showPreviousButton = true;
-        showNextButton = true;
-        showShuffleButton = false;
-        int rewindMs = DefaultControlDispatcher.DEFAULT_REWIND_MS;
-        int fastForwardMs = DefaultControlDispatcher.DEFAULT_FAST_FORWARD_MS;
+        showTimeoutMs = attributes.getShowTimeoutMs();
+        repeatToggleModes = attributes.getRepeatToggleModes();
+        timeBarMinUpdateIntervalMs = attributes.getTimeBarMinUpdateIntervalMs();
+        hideAtMs = attributes.getHideAtMs();
+        showRewindButton = attributes.getShowRewindButton();
+        showFastForwardButton = attributes.getShowFastForwardButton();
+        showPreviousButton = attributes.getShowPreviousButton();
+        showNextButton = attributes.getShowNextButton();
+        showShuffleButton = attributes.getShowShuffleButton();
+        int rewindMs = attributes.getRewindMs();
+        int fastForwardMs = attributes.getFastForwardMs();
+        debugMode = attributes.isDebugMode();
 
         visibilityListeners = new CopyOnWriteArrayList<>();
         period = new Timeline.Period();
@@ -457,20 +404,15 @@ public class PlayerControlView extends FrameLayout {
         extraAdGroupTimesMs = new long[0];
         extraPlayedAdGroups = new boolean[0];
         componentListener = new ComponentListener();
-        controlDispatcher =
-                new DefaultControlDispatcher(fastForwardMs, rewindMs);
+        controlDispatcher = new DefaultControlDispatcher(fastForwardMs, rewindMs);
         updateProgressAction = this::updateProgress;
         hideAction = this::hide;
-        debugMode = false;
-
-//    LayoutInflater.from(context).inflate(controllerLayoutId, /* root= */ this);
 
         // Inflate UI here
-
         int alphaBlack = Color.parseColor("#CC000000");
         int whiteColor = Color.parseColor("#FFBEBEBE");
         String initialDuration = "00:00:00";
-        int padding = convertToDp(context, 4f);
+        int padding = convertToDp(4f);
 
         // Create a parent Linear Layout to hold other views and place it at bottom
         LinearLayout rootView = new LinearLayout(context);
@@ -577,18 +519,56 @@ public class PlayerControlView extends FrameLayout {
         buttonAlphaEnabled = 1f;
         buttonAlphaDisabled = (float) 33 / 100;
 
+        repeatOffButtonDrawable = getDrawable(context, IC_REPEAT_OFF);
+        repeatOneButtonDrawable = getDrawable(context, IC_REPEAT_ONE);
+        repeatAllButtonDrawable = getDrawable(context, IC_REPEAT_ALL);
+        shuffleOnButtonDrawable = getDrawable(context, IC_SHUFFLE_ON);
+        shuffleOffButtonDrawable = getDrawable(context, IC_SHUFFLE_OFF);
+
         addView(rootView);
         updateIcons();
     }
 
-    private int convertToDp(Context context, float dip) {
-        DisplayMetrics displayMetric = context.getResources().getDisplayMetrics();
+    @SuppressLint("InlinedApi")
+    private static boolean isHandledMediaKey(int keyCode) {
+        return keyCode == KeyEvent.KEYCODE_MEDIA_FAST_FORWARD
+                || keyCode == KeyEvent.KEYCODE_MEDIA_REWIND
+                || keyCode == KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE
+                || keyCode == KeyEvent.KEYCODE_HEADSETHOOK
+                || keyCode == KeyEvent.KEYCODE_MEDIA_PLAY
+                || keyCode == KeyEvent.KEYCODE_MEDIA_PAUSE
+                || keyCode == KeyEvent.KEYCODE_MEDIA_NEXT
+                || keyCode == KeyEvent.KEYCODE_MEDIA_PREVIOUS;
+    }
+
+    /**
+     * Returns whether the specified {@code timeline} can be shown on a multi-window time bar.
+     *
+     * @param timeline The {@link Timeline} to check.
+     * @param window   A scratch {@link Timeline.Window} instance.
+     * @return Whether the specified timeline can be shown on a multi-window time bar.
+     */
+    private static boolean canShowMultiWindowTimeBar(Timeline timeline, Timeline.Window window) {
+        if (timeline.getWindowCount() > MAX_WINDOWS_FOR_MULTI_WINDOW_TIME_BAR) {
+            return false;
+        }
+        int windowCount = timeline.getWindowCount();
+        for (int i = 0; i < windowCount; i++) {
+            if (timeline.getWindow(i, window).durationUs == C.TIME_UNSET) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private int convertToDp(float dip) {
+        DisplayMetrics displayMetric = Resources.getSystem().getDisplayMetrics();
         return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dip, displayMetric);
     }
 
     private ImageButton createImageButton(Context context, Drawable drawable) {
         ImageButton button = new ImageButton(context);
-        button.setLayoutParams(new ViewGroup.LayoutParams(convertToDp(context, 50), convertToDp(context, 50)));
+        button.setLayoutParams(new ViewGroup.LayoutParams(convertToDp(50), convertToDp(50)));
         button.setImageDrawable(drawable);
         button.setBackgroundColor(Color.parseColor("#00000000"));
         button.setScaleType(ImageView.ScaleType.FIT_CENTER);
@@ -627,14 +607,6 @@ public class PlayerControlView extends FrameLayout {
             Log.e(LOG_TAG, "getAsset | Debug Mode : " + this.debugMode + " | Error : " + e);
             return null;
         }
-    }
-
-    /**
-     * Set debug mode. Debug mode means if currently using a companion
-     */
-    public void setDebugMode(boolean isCompanion) {
-        this.debugMode = isCompanion;
-        updateIcons();
     }
 
     private void updateIcons() {
@@ -1436,36 +1408,31 @@ public class PlayerControlView extends FrameLayout {
         controlDispatcher.dispatchSetPlayWhenReady(player, /* playWhenReady= */ false);
     }
 
-    @SuppressLint("InlinedApi")
-    private static boolean isHandledMediaKey(int keyCode) {
-        return keyCode == KeyEvent.KEYCODE_MEDIA_FAST_FORWARD
-                || keyCode == KeyEvent.KEYCODE_MEDIA_REWIND
-                || keyCode == KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE
-                || keyCode == KeyEvent.KEYCODE_HEADSETHOOK
-                || keyCode == KeyEvent.KEYCODE_MEDIA_PLAY
-                || keyCode == KeyEvent.KEYCODE_MEDIA_PAUSE
-                || keyCode == KeyEvent.KEYCODE_MEDIA_NEXT
-                || keyCode == KeyEvent.KEYCODE_MEDIA_PREVIOUS;
+    /**
+     * Listener to be notified about changes of the visibility of the UI control.
+     */
+    public interface VisibilityListener {
+
+        /**
+         * Called when the visibility changes.
+         *
+         * @param visibility The new visibility. Either {@link View#VISIBLE} or {@link View#GONE}.
+         */
+        void onVisibilityChange(int visibility);
     }
 
     /**
-     * Returns whether the specified {@code timeline} can be shown on a multi-window time bar.
-     *
-     * @param timeline The {@link Timeline} to check.
-     * @param window   A scratch {@link Timeline.Window} instance.
-     * @return Whether the specified timeline can be shown on a multi-window time bar.
+     * Listener to be notified when progress has been updated.
      */
-    private static boolean canShowMultiWindowTimeBar(Timeline timeline, Timeline.Window window) {
-        if (timeline.getWindowCount() > MAX_WINDOWS_FOR_MULTI_WINDOW_TIME_BAR) {
-            return false;
-        }
-        int windowCount = timeline.getWindowCount();
-        for (int i = 0; i < windowCount; i++) {
-            if (timeline.getWindow(i, window).durationUs == C.TIME_UNSET) {
-                return false;
-            }
-        }
-        return true;
+    public interface ProgressUpdateListener {
+
+        /**
+         * Called when progress needs to be updated.
+         *
+         * @param position         The current position.
+         * @param bufferedPosition The current buffered position.
+         */
+        void onProgressUpdate(long position, long bufferedPosition);
     }
 
 //    @SuppressWarnings("ResourceType")

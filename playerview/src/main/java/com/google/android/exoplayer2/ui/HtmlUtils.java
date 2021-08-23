@@ -16,7 +16,9 @@
 package com.google.android.exoplayer2.ui;
 
 import android.graphics.Color;
+
 import androidx.annotation.ColorInt;
+
 import com.google.android.exoplayer2.util.Util;
 
 /**
@@ -25,19 +27,20 @@ import com.google.android.exoplayer2.util.Util;
  */
 /* package */ final class HtmlUtils {
 
-  private HtmlUtils() {}
+    private HtmlUtils() {
+    }
 
-  public static String toCssRgba(@ColorInt int color) {
-    return Util.formatInvariant(
-        "rgba(%d,%d,%d,%.3f)",
-        Color.red(color), Color.green(color), Color.blue(color), Color.alpha(color) / 255.0);
-  }
+    public static String toCssRgba(@ColorInt int color) {
+        return Util.formatInvariant(
+                "rgba(%d,%d,%d,%.3f)",
+                Color.red(color), Color.green(color), Color.blue(color), Color.alpha(color) / 255.0);
+    }
 
-  /**
-   * Returns a CSS selector that selects all elements with {@code class=className} and all their
-   * descendants.
-   */
-  public static String cssAllClassDescendantsSelector(String className) {
-    return "." + className + ",." + className + " *";
-  }
+    /**
+     * Returns a CSS selector that selects all elements with {@code class=className} and all their
+     * descendants.
+     */
+    public static String cssAllClassDescendantsSelector(String className) {
+        return "." + className + ",." + className + " *";
+    }
 }

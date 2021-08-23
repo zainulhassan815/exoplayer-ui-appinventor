@@ -2,4 +2,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.google.android.exoplayer2.ui">
 
+    <application android:configChanges="orientation|screenSize|layoutDirection" />
 </manifest>
