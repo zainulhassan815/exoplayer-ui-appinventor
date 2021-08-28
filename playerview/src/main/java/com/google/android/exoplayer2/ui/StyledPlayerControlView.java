@@ -453,8 +453,9 @@ public class StyledPlayerControlView extends FrameLayout {
     private boolean scrubbing;
     private int showTimeoutMs;
     private int timeBarMinUpdateIntervalMs;
-    private @RepeatModeUtil.RepeatToggleModes
-    int repeatToggleModes;
+//    private @RepeatModeUtil.RepeatToggleModes
+//    int repeatToggleModes;
+    private int repeatToggleModes;
     private long[] adGroupTimesMs;
     private boolean[] playedAdGroups;
     private long[] extraAdGroupTimesMs;
@@ -491,11 +492,11 @@ public class StyledPlayerControlView extends FrameLayout {
     private final boolean debugMode;
 
     public StyledPlayerControlView(Context context) {
-        this(context, /* attrs= */ new PlayerControlViewAttributes());
+        this(context, /* attrs= */ PlayerAttributes.createDefault());
     }
 
     public StyledPlayerControlView(
-            Context context, PlayerControlViewAttributes attributes) {
+            Context context, PlayerAttributes attributes) {
         super(context, null, 0);
         this.context = context;
 
@@ -852,13 +853,12 @@ public class StyledPlayerControlView extends FrameLayout {
     }
 
     private void setSelectableBackground(View view) {
-        if (view != null) {
-            TypedValue outValue = new TypedValue();
-            context.getTheme().resolveAttribute(android.R.attr.selectableItemBackground, outValue, true);
-            view.setBackgroundResource(outValue.resourceId);
-        }
+        TypedValue outValue = new TypedValue();
+        context.getTheme().resolveAttribute(android.R.attr.selectableItemBackground, outValue, true);
+        view.setBackgroundResource(outValue.resourceId);
     }
 
+    @Nullable
     private Drawable getDrawable(Context context, String fileName) {
         try {
             InputStream inputStream = this.getAsset(context, fileName);

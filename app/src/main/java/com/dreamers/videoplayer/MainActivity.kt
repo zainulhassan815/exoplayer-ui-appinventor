@@ -1,5 +1,7 @@
 package com.dreamers.videoplayer
 
+import android.graphics.Color
+import android.graphics.Typeface
 import android.net.Uri
 import android.os.Bundle
 import android.widget.FrameLayout
@@ -10,6 +12,7 @@ import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
+import com.google.android.exoplayer2.ui.CaptionStyleCompat
 import com.google.android.exoplayer2.ui.StyledPlayerView
 import com.google.android.exoplayer2.util.MimeTypes
 import com.google.android.exoplayer2.util.Util
@@ -36,7 +39,19 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         val container: FrameLayout = findViewById(R.id.video_container)
-        playerView = StyledPlayerView(this)
+        playerView = StyledPlayerView(this).apply {
+            subtitleView?.setStyle(
+                CaptionStyleCompat(
+                    Color.WHITE,
+                    Color.BLUE,
+                    Color.MAGENTA,
+                    CaptionStyleCompat.EDGE_TYPE_DROP_SHADOW,
+                    Color.CYAN,
+                    Typeface.DEFAULT
+                )
+            )
+            subtitleView?.setFractionalTextSize(.06f)
+        }
         container.addView(
             playerView,
             0,

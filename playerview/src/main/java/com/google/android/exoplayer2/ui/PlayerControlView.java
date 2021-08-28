@@ -358,8 +358,9 @@ public class PlayerControlView extends FrameLayout {
     private boolean scrubbing;
     private int showTimeoutMs;
     private int timeBarMinUpdateIntervalMs;
-    private @RepeatModeUtil.RepeatToggleModes
-    int repeatToggleModes;
+    //    private @RepeatModeUtil.RepeatToggleModes
+//    int repeatToggleModes;
+    private int repeatToggleModes;
     private boolean showRewindButton;
     private boolean showFastForwardButton;
     private boolean showPreviousButton;
@@ -373,10 +374,10 @@ public class PlayerControlView extends FrameLayout {
     private long currentWindowOffset;
 
     public PlayerControlView(Context context) {
-        this(context, /* attrs= */ new PlayerControlViewAttributes());
+        this(context, /* attrs= */ PlayerAttributes.createDefault());
     }
 
-    public PlayerControlView(Context context, PlayerControlViewAttributes attributes) {
+    public PlayerControlView(Context context, PlayerAttributes attributes) {
         super(context, null, 0);
 
         this.context = context;
