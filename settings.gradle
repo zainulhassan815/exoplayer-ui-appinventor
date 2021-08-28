@@ -1,3 +1,4 @@
 rootProject.name = "videoplayer"
 include ':app'
 include ':playerview'
+include ':timebar'

@@ -319,8 +319,9 @@ public class StyledPlayerView extends FrameLayout implements AdViewProvider {
     private boolean useArtwork;
     @Nullable
     private Drawable defaultArtwork;
-    private @ShowBuffering
-    int showBuffering;
+//    private @ShowBuffering
+//    int showBuffering;
+    private int showBuffering;
     private boolean keepContentOnPlayerReset;
     @Nullable
     private ErrorMessageProvider<? super ExoPlaybackException> errorMessageProvider;
@@ -333,10 +334,10 @@ public class StyledPlayerView extends FrameLayout implements AdViewProvider {
     private int textureViewRotation;
     private boolean isTouching;
     public StyledPlayerView(Context context) {
-        this(context, new PlayerViewAttributes());
+        this(context, PlayerAttributes.createDefault());
     }
 
-    public StyledPlayerView(Context context, PlayerViewAttributes attributes) {
+    public StyledPlayerView(Context context, PlayerAttributes attributes) {
         super(context, null, 0);
 
         componentListener = new ComponentListener();
@@ -363,7 +364,7 @@ public class StyledPlayerView extends FrameLayout implements AdViewProvider {
         int errorMessageBg = Color.parseColor("#AA000000");
 
         int shutterColor = Color.parseColor("#000000");
-        boolean useArtwork = attributes.getUseArtwork();
+        boolean useArtwork = attributes.getUseArtWork();
         boolean useController = attributes.getUseController();
         int surfaceType = attributes.getSurfaceType();
         int resizeMode = attributes.getResizeMode();
@@ -479,7 +480,7 @@ public class StyledPlayerView extends FrameLayout implements AdViewProvider {
         errorMessageView.setVisibility(View.GONE);
 
         // Playback control view.
-        controller = new StyledPlayerControlView(context, new PlayerControlViewAttributes(attributes.isDebugMode()));
+        controller = new StyledPlayerControlView(context, attributes);
         controller.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
 
         this.controllerShowTimeoutMs = controllerShowTimeoutMs;

@@ -318,8 +318,9 @@ public class PlayerView extends FrameLayout implements AdViewProvider {
     private boolean useArtwork;
     @Nullable
     private Drawable defaultArtwork;
-    private @ShowBuffering
-    int showBuffering;
+    //    private @ShowBuffering
+//    int showBuffering;
+    private int showBuffering;
     private boolean keepContentOnPlayerReset;
     @Nullable
     private ErrorMessageProvider<? super ExoPlaybackException> errorMessageProvider;
@@ -333,11 +334,11 @@ public class PlayerView extends FrameLayout implements AdViewProvider {
     private boolean isTouching;
 
     public PlayerView(Context context) {
-        this(context, new PlayerViewAttributes());
+        this(context, PlayerAttributes.createDefault());
     }
 
     // Custom constructor
-    public PlayerView(Context context, PlayerViewAttributes attributes) {
+    public PlayerView(Context context, PlayerAttributes attributes) {
 
         super(context, null, 0);
         setBackgroundColor(Color.parseColor("#000000"));
@@ -365,7 +366,7 @@ public class PlayerView extends FrameLayout implements AdViewProvider {
         // Get properties from player view attributes class
 
         int shutterColor = Color.parseColor("#000000");
-        boolean useArtwork = attributes.getUseArtwork();
+        boolean useArtwork = attributes.getUseArtWork();
         boolean useController = attributes.getUseController();
         int surfaceType = attributes.getSurfaceType();
         int resizeMode = attributes.getResizeMode();
@@ -488,7 +489,7 @@ public class PlayerView extends FrameLayout implements AdViewProvider {
         errorMessageView.setVisibility(View.GONE);
 
         // Player Controls View
-        controller = new PlayerControlView(context, new PlayerControlViewAttributes(attributes.isDebugMode()));
+        controller = new PlayerControlView(context, attributes);
         controller.setLayoutParams(defaultParams());
 
         this.controllerShowTimeoutMs = controllerShowTimeoutMs;
