@@ -318,8 +318,6 @@ public class PlayerView extends FrameLayout implements AdViewProvider {
     private boolean useArtwork;
     @Nullable
     private Drawable defaultArtwork;
-    //    private @ShowBuffering
-//    int showBuffering;
     private int showBuffering;
     private boolean keepContentOnPlayerReset;
     @Nullable
@@ -334,14 +332,19 @@ public class PlayerView extends FrameLayout implements AdViewProvider {
     private boolean isTouching;
 
     public PlayerView(Context context) {
-        this(context, PlayerAttributes.createDefault());
+        this(context, TimeBarAttributes.createDefault());
+    }
+
+    public PlayerView(Context context, TimeBarAttributes timeBarAttributes) {
+        this(context, timeBarAttributes, PlayerAttributes.createDefault());
     }
 
     // Custom constructor
-    public PlayerView(Context context, PlayerAttributes attributes) {
+    public PlayerView(Context context, TimeBarAttributes timeBarAttributes, PlayerAttributes playerAttributes) {
 
         super(context, null, 0);
-        setBackgroundColor(Color.parseColor("#000000"));
+        setBackgroundColor(Color.BLACK);
+        setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
 
         componentListener = new ComponentListener();
 
@@ -363,25 +366,23 @@ public class PlayerView extends FrameLayout implements AdViewProvider {
             return;
         }
 
-        // Get properties from player view attributes class
+        // Get properties from player view playerAttributes class
 
-        int shutterColor = Color.parseColor("#000000");
-        boolean useArtwork = attributes.getUseArtWork();
-        boolean useController = attributes.getUseController();
-        int surfaceType = attributes.getSurfaceType();
-        int resizeMode = attributes.getResizeMode();
-        int controllerShowTimeoutMs = attributes.getControllerTimeout();
-        boolean controllerHideOnTouch = attributes.getHideOnTouch();
-        boolean controllerAutoShow = attributes.getAutoShowController();
-        boolean controllerHideDuringAds = attributes.getHideDuringAds();
-        int showBuffering = attributes.getShowBuffering();
-        debugMode = attributes.isDebugMode();
+        int shutterColor = Color.BLACK;
+        boolean useArtwork = playerAttributes.getUseArtWork();
+        boolean useController = playerAttributes.getUseController();
+        int surfaceType = playerAttributes.getSurfaceType();
+        int resizeMode = playerAttributes.getResizeMode();
+        int controllerShowTimeoutMs = playerAttributes.getControllerTimeout();
+        boolean controllerHideOnTouch = playerAttributes.getHideOnTouch();
+        boolean controllerAutoShow = playerAttributes.getAutoShowController();
+        boolean controllerHideDuringAds = playerAttributes.getHideDuringAds();
+        int showBuffering = playerAttributes.getShowBuffering();
+        debugMode = playerAttributes.isDebugMode();
 
         int whiteWithAlpha7 = Color.parseColor("#B3ffffff");
         int errorMessageBg = Color.parseColor("#AA000000");
 
-        FrameLayout rootView = new FrameLayout(context);
-        rootView.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
 
         // Create an aspect ratio layout as content frame
         contentFrame = new AspectRatioFrameLayout(context);
@@ -404,14 +405,12 @@ public class PlayerView extends FrameLayout implements AdViewProvider {
         bufferingView = new ProgressBar(context);
         bufferingView.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, Gravity.CENTER));
         ((ProgressBar) bufferingView).setIndeterminate(true);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            ((ProgressBar) bufferingView).setIndeterminateTintList(ColorStateList.valueOf(whiteWithAlpha7));
-        }
+        ((ProgressBar) bufferingView).setIndeterminateTintList(ColorStateList.valueOf(whiteWithAlpha7));
 
         // Error Message View (Textview)
         errorMessageView = new TextView(context);
         errorMessageView.setLayoutParams(centeredParams());
-        int padding = convertToDp(context, 16f);
+        int padding = UiHelper.convertToDp(16f);
         errorMessageView.setPadding(padding, padding, padding, padding);
         errorMessageView.setBackgroundColor(errorMessageBg);
 
@@ -423,7 +422,7 @@ public class PlayerView extends FrameLayout implements AdViewProvider {
         contentFrame.addView(errorMessageView);
 
         // Add UI Elements to root view
-        rootView.addView(contentFrame);
+        addView(contentFrame);
 
         setDescendantFocusability(FOCUS_AFTER_DESCENDANTS);
 
@@ -489,7 +488,7 @@ public class PlayerView extends FrameLayout implements AdViewProvider {
         errorMessageView.setVisibility(View.GONE);
 
         // Player Controls View
-        controller = new PlayerControlView(context, attributes);
+        controller = new PlayerControlView(context, timeBarAttributes, playerAttributes);
         controller.setLayoutParams(defaultParams());
 
         this.controllerShowTimeoutMs = controllerShowTimeoutMs;
@@ -502,8 +501,7 @@ public class PlayerView extends FrameLayout implements AdViewProvider {
         controller.addVisibilityListener(/* listener= */ componentListener);
 
         // Add Controls View to root view
-        rootView.addView(controller);
-        addView(rootView);
+        addView(controller);
     }
 
     /**
@@ -558,11 +556,6 @@ public class PlayerView extends FrameLayout implements AdViewProvider {
                     pivotY);
         }
         textureView.setTransform(transformMatrix);
-    }
-
-    private int convertToDp(Context context, float dip) {
-        DisplayMetrics displayMetric = context.getResources().getDisplayMetrics();
-        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dip, displayMetric);
     }
 
     private LayoutParams defaultParams() {

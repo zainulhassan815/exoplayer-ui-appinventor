@@ -24,7 +24,6 @@ import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -259,34 +258,14 @@ public class DefaultTimeBar extends View implements TimeBar {
     private boolean[] playedAdGroups;
 
     public DefaultTimeBar(Context context) {
-        this(context, null);
-    }
-
-    public DefaultTimeBar(Context context, @Nullable AttributeSet attrs) {
-        this(context, attrs, 0);
-    }
-
-    public DefaultTimeBar(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
-        this(context, attrs, defStyleAttr, attrs);
-    }
-
-    public DefaultTimeBar(
-            Context context,
-            @Nullable AttributeSet attrs,
-            int defStyleAttr,
-            @Nullable AttributeSet timebarAttrs) {
-        this(context, attrs, defStyleAttr, timebarAttrs, 0);
+        this(context, TimeBarAttributes.createDefault());
     }
 
     // Suppress warnings due to usage of View methods in the constructor.
     @SuppressWarnings("nullness:method.invocation.invalid")
     public DefaultTimeBar(
-            Context context,
-            @Nullable AttributeSet attrs,
-            int defStyleAttr,
-            @Nullable AttributeSet timebarAttrs,
-            int defStyleRes) {
-        super(context, attrs, defStyleAttr);
+            Context context, TimeBarAttributes attributes) {
+        super(context, null, 0);
         seekBounds = new Rect();
         progressBar = new Rect();
         bufferedBar = new Rect();
@@ -306,27 +285,33 @@ public class DefaultTimeBar extends View implements TimeBar {
         DisplayMetrics displayMetrics = res.getDisplayMetrics();
         density = displayMetrics.density;
         fineScrubYThreshold = dpToPx(density, FINE_SCRUB_Y_THRESHOLD_DP);
-        int defaultBarHeight = dpToPx(density, DEFAULT_BAR_HEIGHT_DP);
-        int defaultTouchTargetHeight = dpToPx(density, DEFAULT_TOUCH_TARGET_HEIGHT_DP);
-        int defaultAdMarkerWidth = dpToPx(density, DEFAULT_AD_MARKER_WIDTH_DP);
-        int defaultScrubberEnabledSize = dpToPx(density, DEFAULT_SCRUBBER_ENABLED_SIZE_DP);
-        int defaultScrubberDisabledSize = dpToPx(density, DEFAULT_SCRUBBER_DISABLED_SIZE_DP);
-        int defaultScrubberDraggedSize = dpToPx(density, DEFAULT_SCRUBBER_DRAGGED_SIZE_DP);
+//        int defaultTouchTargetHeight = dpToPx(density, DEFAULT_TOUCH_TARGET_HEIGHT_DP);
 
-        barHeight = defaultBarHeight;
-        touchTargetHeight = defaultTouchTargetHeight;
-        barGravity = BAR_GRAVITY_CENTER;
-        adMarkerWidth = defaultAdMarkerWidth;
-        scrubberEnabledSize = defaultScrubberEnabledSize;
-        scrubberDisabledSize = defaultScrubberDisabledSize;
-        scrubberDraggedSize = defaultScrubberDraggedSize;
-        playedPaint.setColor(DEFAULT_PLAYED_COLOR);
-        scrubberPaint.setColor(DEFAULT_SCRUBBER_COLOR);
-        bufferedPaint.setColor(DEFAULT_BUFFERED_COLOR);
-        unplayedPaint.setColor(DEFAULT_UNPLAYED_COLOR);
-        adMarkerPaint.setColor(DEFAULT_AD_MARKER_COLOR);
-        playedAdMarkerPaint.setColor(DEFAULT_PLAYED_AD_MARKER_COLOR);
-        scrubberDrawable = null;
+        scrubberDrawable = attributes.getScrubberDrawable();
+        if (scrubberDrawable != null) {
+            setDrawableLayoutDirection(scrubberDrawable);
+        }
+        barHeight = dpToPx(density, attributes.getBarHeight());
+        touchTargetHeight = dpToPx(density, attributes.getTouchTargetHeight());
+        adMarkerWidth = dpToPx(density, attributes.getAdMarkerWidth());
+        scrubberEnabledSize = dpToPx(density, attributes.getScrubberEnabledSize());
+        scrubberDisabledSize = dpToPx(density, attributes.getScrubberDisabledSize());
+        scrubberDraggedSize = dpToPx(density, attributes.getScrubberDraggedSize());
+        barGravity = attributes.getBarGravity();
+
+        int playedColor = attributes.getPlayedColor();
+        int scrubberColor = attributes.getScrubberColor();
+        int bufferedColor = attributes.getBufferedColor();
+        int unplayedColor = attributes.getUnplayedColor();
+        int adMarkerColor = attributes.getAdMarkerColor();
+        int playedAdMarkerColor = attributes.getPlayedAdMarkerColor();
+
+        playedPaint.setColor(playedColor);
+        scrubberPaint.setColor(scrubberColor);
+        bufferedPaint.setColor(bufferedColor);
+        unplayedPaint.setColor(unplayedColor);
+        adMarkerPaint.setColor(adMarkerColor);
+        playedAdMarkerPaint.setColor(playedAdMarkerColor);
 
         formatBuilder = new StringBuilder();
         formatter = new Formatter(formatBuilder, Locale.getDefault());

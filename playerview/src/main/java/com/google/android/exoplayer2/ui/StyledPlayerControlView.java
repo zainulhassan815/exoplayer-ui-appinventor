@@ -31,22 +31,18 @@ import static com.google.android.exoplayer2.util.Assertions.checkNotNull;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
-import android.os.Build;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Looper;
-import android.util.DisplayMetrics;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
@@ -80,9 +76,6 @@ import com.google.android.exoplayer2.util.Assertions;
 import com.google.android.exoplayer2.util.RepeatModeUtil;
 import com.google.android.exoplayer2.util.Util;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -349,29 +342,6 @@ public class StyledPlayerControlView extends FrameLayout {
     private static final int MAX_UPDATE_INTERVAL_MS = 1_000;
     private static final int SETTINGS_PLAYBACK_SPEED_POSITION = 0;
     private static final int SETTINGS_AUDIO_TRACK_SELECTION_POSITION = 1;
-    private static final String IC_PLAY = "ic_play.png";
-    private static final String IC_PAUSE = "ic_pause.png";
-    private static final String IC_NEXT = "ic_next.png";
-    private static final String IC_PREVIOUS = "ic_previous.png";
-    private static final String IC_FAST_FORWARD = "ic_fast_forward.png";
-    private static final String IC_REWIND = "ic_rewind.png";
-    private static final String IC_REPEAT_OFF = "ic_repeat_off.png";
-    private static final String IC_REPEAT_ONE = "ic_repeat_one.png";
-    private static final String IC_REPEAT_ALL = "ic_repeat_all.png";
-    private static final String IC_SHUFFLE_ON = "ic_shuffle_on.png";
-    private static final String IC_SHUFFLE_OFF = "ic_shuffle_off.png";
-    private static final String IC_SUBTITLE_ON = "ic_subtitle_on.png";
-    private static final String IC_SUBTITLE_OFF = "ic_subtitle_off.png";
-    private static final String IC_SETTINGS = "ic_settings.png";
-    private static final String IC_SPEED = "ic_speed.png";
-    private static final String IC_AUDIO_TRACK = "ic_audio_track.png";
-    private static final String IC_FULLSCREEN_ENTER = "ic_fullscreen_enter.png";
-    private static final String IC_FULLSCREEN_EXIT = "ic_fullscreen_exit.png";
-    private static final String IC_CHECK = "ic_check.png";
-    private static final String LOG_TAG = "ExoplayerUi";
-    private static final String LIST_ICON_TAG = "icon";
-    private static final String LIST_MAIN_TEXT_TAG = "main_text";
-    private static final String LIST_SUB_TEXT_TAG = "sub_text";
 
     static {
         ExoPlayerLibraryInfo.registerModule("goog.exo.ui");
@@ -417,8 +387,6 @@ public class StyledPlayerControlView extends FrameLayout {
     private final Timeline.Period period;
     private final Timeline.Window window;
     private final Runnable updateProgressAction;
-    private final float buttonAlphaEnabled;
-    private final float buttonAlphaDisabled;
     private final String repeatOffButtonContentDescription;
     private final String repeatOneButtonContentDescription;
     private final String repeatAllButtonContentDescription;
@@ -428,15 +396,24 @@ public class StyledPlayerControlView extends FrameLayout {
     private final String subtitleOffContentDescription;
     private final String fullScreenExitContentDescription;
     private final String fullScreenEnterContentDescription;
-    private Drawable repeatOffButtonDrawable;
-    private Drawable repeatOneButtonDrawable;
-    private Drawable repeatAllButtonDrawable;
-    private Drawable shuffleOnButtonDrawable;
-    private Drawable shuffleOffButtonDrawable;
-    private Drawable subtitleOnButtonDrawable;
-    private Drawable subtitleOffButtonDrawable;
-    private Drawable fullScreenExitDrawable;
-    private Drawable fullScreenEnterDrawable;
+    @Nullable
+    private final Drawable repeatOffButtonDrawable;
+    @Nullable
+    private final Drawable repeatOneButtonDrawable;
+    @Nullable
+    private final Drawable repeatAllButtonDrawable;
+    @Nullable
+    private final Drawable shuffleOnButtonDrawable;
+    @Nullable
+    private final Drawable shuffleOffButtonDrawable;
+    @Nullable
+    private final Drawable subtitleOnButtonDrawable;
+    @Nullable
+    private final Drawable subtitleOffButtonDrawable;
+    @Nullable
+    private final Drawable fullScreenExitDrawable;
+    @Nullable
+    private final Drawable fullScreenEnterDrawable;
     @Nullable
     private Player player;
     private ControlDispatcher controlDispatcher;
@@ -453,8 +430,6 @@ public class StyledPlayerControlView extends FrameLayout {
     private boolean scrubbing;
     private int showTimeoutMs;
     private int timeBarMinUpdateIntervalMs;
-//    private @RepeatModeUtil.RepeatToggleModes
-//    int repeatToggleModes;
     private int repeatToggleModes;
     private long[] adGroupTimesMs;
     private boolean[] playedAdGroups;
@@ -463,71 +438,73 @@ public class StyledPlayerControlView extends FrameLayout {
     private long currentWindowOffset;
     private long rewindMs;
     private long fastForwardMs;
-    private StyledPlayerControlViewLayoutManager controlViewLayoutManager;
-    private Resources resources;
-    private RecyclerView settingsView;
-    private SettingsAdapter settingsAdapter;
-    private PlaybackSpeedAdapter playbackSpeedAdapter;
-    private PopupWindow settingsWindow;
+    private final StyledPlayerControlViewLayoutManager controlViewLayoutManager;
+    private final RecyclerView settingsView;
+    private final SettingsAdapter settingsAdapter;
+    private final PlaybackSpeedAdapter playbackSpeedAdapter;
+    private final PopupWindow settingsWindow;
     private boolean needToHideBars;
-    private int settingsWindowMargin;
+    private final int settingsWindowMargin;
     @Nullable
     private DefaultTrackSelector trackSelector;
-    private TrackSelectionAdapter textTrackSelectionAdapter;
-    private TrackSelectionAdapter audioTrackSelectionAdapter;
+    private final TrackSelectionAdapter textTrackSelectionAdapter;
+    private final TrackSelectionAdapter audioTrackSelectionAdapter;
     // TODO(insun): Add setTrackNameProvider to use customized track name provider.
-    private TrackNameProvider trackNameProvider;
+    private final TrackNameProvider trackNameProvider;
     @Nullable
-    private ImageView subtitleButton;
+    private final ImageView subtitleButton;
     @Nullable
-    private ImageView fullScreenButton;
+    private final ImageView fullScreenButton;
     @Nullable
     private ImageView minimalFullScreenButton;
     @Nullable
-    private View settingsButton;
+    private final View settingsButton;
     @Nullable
     private View playbackSpeedButton;
     @Nullable
     private View audioTrackButton;
     private final boolean debugMode;
 
+    public static final String LIST_ICON_TAG = "icon";
+    public static final String LIST_MAIN_TEXT_TAG = "main_text";
+    public static final String LIST_SUB_TEXT_TAG = "sub_text";
+
     public StyledPlayerControlView(Context context) {
-        this(context, /* attrs= */ PlayerAttributes.createDefault());
+        this(context, /* attrs= */ TimeBarAttributes.createDefault());
+    }
+
+    public StyledPlayerControlView(Context context, TimeBarAttributes timeBarAttributes) {
+        this(context, timeBarAttributes, PlayerAttributes.createDefault());
     }
 
     public StyledPlayerControlView(
-            Context context, PlayerAttributes attributes) {
+            Context context, TimeBarAttributes timeBarAttributes, PlayerAttributes playerAttributes) {
         super(context, null, 0);
         this.context = context;
 
-        rewindMs = attributes.getRewindMs();
-        fastForwardMs = attributes.getFastForwardMs();
-        showTimeoutMs = attributes.getShowTimeoutMs();
-        repeatToggleModes = attributes.getRepeatToggleModes();
-        timeBarMinUpdateIntervalMs = attributes.getTimeBarMinUpdateIntervalMs();
-        boolean showRewindButton = attributes.getShowRewindButton();
-        boolean showFastForwardButton = attributes.getShowFastForwardButton();
-        boolean showPreviousButton = attributes.getShowPreviousButton();
-        boolean showNextButton = attributes.getShowNextButton();
-        boolean showShuffleButton = attributes.getShowShuffleButton();
-        boolean showSubtitleButton = attributes.getShowSubtitleButton();
-        boolean animationEnabled = attributes.getAnimationEnabled();
-        boolean showVrButton = attributes.getShowVrButton();
-        this.debugMode = attributes.isDebugMode();
-
-        int alphaBlack = Color.parseColor("#CC000000");
-        int whiteColor = Color.parseColor("#FFBEBEBE");
-        String initialDuration = "00:00";
+        rewindMs = playerAttributes.getRewindMs();
+        fastForwardMs = playerAttributes.getFastForwardMs();
+        showTimeoutMs = playerAttributes.getShowTimeoutMs();
+        repeatToggleModes = playerAttributes.getRepeatToggleModes();
+        timeBarMinUpdateIntervalMs = playerAttributes.getTimeBarMinUpdateIntervalMs();
+        boolean showRewindButton = playerAttributes.getShowRewindButton();
+        boolean showFastForwardButton = playerAttributes.getShowFastForwardButton();
+        boolean showPreviousButton = playerAttributes.getShowPreviousButton();
+        boolean showNextButton = playerAttributes.getShowNextButton();
+        boolean showShuffleButton = playerAttributes.getShowShuffleButton();
+        boolean showSubtitleButton = playerAttributes.getShowSubtitleButton();
+        boolean animationEnabled = playerAttributes.getAnimationEnabled();
+        debugMode = playerAttributes.isDebugMode();
+        boolean showFullscreenButton = playerAttributes.getShowFullscreenButton();
 
         // Inflate Player View Here
         // ----------- Root View ----------- //
-        FrameLayout rootView = new FrameLayout(context);
-        rootView.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+        setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
 
         // Controls Background
         View controlsBg = new View(context);
         controlsBg.setLayoutParams(new LayoutParams(0, 0));
-        controlsBg.setBackgroundColor(Color.parseColor("#98000000"));
+        controlsBg.setBackgroundColor(UiHelper.CONTROLS_COLOR);
         controlsBg.setTag(ViewIds.exoControlsBackground);
 
         // ----------- Create Center Controls ----------- //
@@ -537,25 +514,25 @@ public class StyledPlayerControlView extends FrameLayout {
         centerControls.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT, Gravity.CENTER));
         centerControls.setGravity(Gravity.CENTER);
         if (Util.SDK_INT >= 21) {
-            int padding = convertToDp(21);
+            int padding = UiHelper.convertToDp(21);
             centerControls.setPadding(padding, padding, padding, padding);
         }
         centerControls.setTag(ViewIds.exoCenterControls);
 
         // Play Btn
-        playPauseButton = createCenterImageButton(context, getDrawable(context, IC_PLAY));
+        playPauseButton = UiHelper.createCenterImageButton(context, UiHelper.getDrawable(context, UiHelper.IC_PLAY, debugMode));
         playPauseButton.setTag(ViewIds.playPauseButton);
         // Rewind Btn
-        rewindButton = createCenterImageButton(context, getDrawable(context, IC_REWIND));
+        rewindButton = UiHelper.createCenterImageButton(context, UiHelper.getDrawable(context, UiHelper.IC_REWIND, debugMode));
         rewindButton.setTag(ViewIds.rewindButton);
         // Fast forward button
-        fastForwardButton = createCenterImageButton(context, getDrawable(context, IC_FAST_FORWARD));
+        fastForwardButton = UiHelper.createCenterImageButton(context, UiHelper.getDrawable(context, UiHelper.IC_FAST_FORWARD, debugMode));
         fastForwardButton.setTag(ViewIds.forwardButton);
         // Next Button
-        nextButton = createCenterImageButton(context, getDrawable(context, IC_NEXT));
+        nextButton = UiHelper.createCenterImageButton(context, UiHelper.getDrawable(context, UiHelper.IC_NEXT, debugMode));
         nextButton.setTag(ViewIds.nextButton);
         // Previous Button
-        previousButton = createCenterImageButton(context, getDrawable(context, IC_PREVIOUS));
+        previousButton = UiHelper.createCenterImageButton(context, UiHelper.getDrawable(context, UiHelper.IC_PREVIOUS, debugMode));
         previousButton.setTag(ViewIds.previousButton);
 
         // Add Buttons to center controls layout
@@ -566,36 +543,38 @@ public class StyledPlayerControlView extends FrameLayout {
         centerControls.addView(nextButton);
 
         // ----------- Bottom Bar ----------- //
-        int bottomBarColor = Color.parseColor("#b0000000");
+        GradientDrawable gradient = new GradientDrawable(GradientDrawable.Orientation.BOTTOM_TOP, new int[]{Color.BLACK, Color.TRANSPARENT});
+
         FrameLayout bottomBar = new FrameLayout(context);
-        LayoutParams params = new LayoutParams(LayoutParams.MATCH_PARENT, convertToDp(60), Gravity.BOTTOM);
-        params.setMargins(0, convertToDp(10), 0, 0);
+        LayoutParams params = new LayoutParams(LayoutParams.MATCH_PARENT, UiHelper.convertToDp(60), Gravity.BOTTOM);
+        params.setMargins(0, UiHelper.convertToDp(10), 0, 0);
         bottomBar.setLayoutParams(params);
-        bottomBar.setBackgroundColor(bottomBarColor);
+        bottomBar.setBackgroundColor(UiHelper.BOTTOM_BAR_COLOR);
         bottomBar.setTag(ViewIds.exoBottomBar);
+        bottomBar.setBackground(gradient);
 
         // Time Container
-        int textPadding = convertToDp(4);
+        int textPadding = UiHelper.convertToDp(4);
 
         LinearLayout timeContainer = new LinearLayout(context);
         timeContainer.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, Gravity.CENTER_VERTICAL | Gravity.START));
-        int timeContainerPadding = convertToDp(10);
+        int timeContainerPadding = UiHelper.convertToDp(10);
         timeContainer.setPadding(timeContainerPadding, timeContainerPadding, timeContainerPadding, timeContainerPadding);
         timeContainer.setTag(ViewIds.exoTimeView);
 
         // Current Position
         positionView = new TextView(context);
-        positionView.setTextColor(whiteColor);
+        positionView.setTextColor(UiHelper.DIM_WHITE);
         positionView.setPadding(textPadding, 0, textPadding, 0);
         positionView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
-        positionView.setText(initialDuration);
+        positionView.setText(UiHelper.INITIAL_DURATION);
         positionView.setTypeface(positionView.getTypeface(), Typeface.BOLD);
         positionView.setIncludeFontPadding(false);
         positionView.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
 
         // Separator
         TextView separator = new TextView(context);
-        separator.setTextColor(whiteColor);
+        separator.setTextColor(UiHelper.DIM_WHITE);
         separator.setPadding(textPadding, 0, textPadding, 0);
         separator.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
         separator.setText("/");
@@ -605,10 +584,10 @@ public class StyledPlayerControlView extends FrameLayout {
 
         // Duration Label
         durationView = new TextView(context);
-        durationView.setTextColor(whiteColor);
+        durationView.setTextColor(UiHelper.DIM_WHITE);
         durationView.setPadding(textPadding, 0, textPadding, 0);
         durationView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
-        durationView.setText(initialDuration);
+        durationView.setText(UiHelper.INITIAL_DURATION);
         durationView.setTypeface(durationView.getTypeface(), Typeface.BOLD);
         durationView.setIncludeFontPadding(false);
         durationView.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
@@ -624,19 +603,22 @@ public class StyledPlayerControlView extends FrameLayout {
         basicControls.setTag(ViewIds.basicControls);
 
         // Shuffle Button
-        shuffleButton = createBottomImageButton(context, getDrawable(context, IC_SHUFFLE_OFF));
+        shuffleButton = UiHelper.createBottomImageButton(context, UiHelper.getDrawable(context, UiHelper.IC_SHUFFLE_OFF, debugMode));
         // Repeat Toggle
-        repeatToggleButton = createBottomImageButton(context, getDrawable(context, IC_REPEAT_OFF));
+        repeatToggleButton = UiHelper.createBottomImageButton(context, UiHelper.getDrawable(context, UiHelper.IC_REPEAT_OFF, debugMode));
         // Subtitle Button
-        subtitleButton = createBottomImageButton(context, getDrawable(context, IC_SUBTITLE_OFF));
+        subtitleButton = UiHelper.createBottomImageButton(context, UiHelper.getDrawable(context, UiHelper.IC_SUBTITLE_OFF, debugMode));
         // Settings Button
-        settingsButton = createBottomImageButton(context, getDrawable(context, IC_SETTINGS));
+        settingsButton = UiHelper.createBottomImageButton(context, UiHelper.getDrawable(context, UiHelper.IC_SETTINGS, debugMode));
+        // Fullscreen Button
+        fullScreenButton = UiHelper.createBottomImageButton(context, UiHelper.getDrawable(context, UiHelper.IC_FULLSCREEN_ENTER, debugMode));
 
         // Add basic controls
         basicControls.addView(shuffleButton);
         basicControls.addView(repeatToggleButton);
         basicControls.addView(subtitleButton);
         basicControls.addView(settingsButton);
+        basicControls.addView(fullScreenButton);
 
         // Add views to bottom bar
         bottomBar.addView(timeContainer);
@@ -657,9 +639,7 @@ public class StyledPlayerControlView extends FrameLayout {
         controlDispatcher = new DefaultControlDispatcher(fastForwardMs, rewindMs);
         updateProgressAction = this::updateProgress;
 
-
-//        fullScreenButton = findViewById(R.id.exo_fullscreen);
-//        initializeFullScreenButton(fullScreenButton, this::onFullScreenButtonClicked);
+        initializeFullScreenButton(fullScreenButton, this::onFullScreenButtonClicked);
 //        minimalFullScreenButton = findViewById(R.id.exo_minimal_fullscreen);
 //        initializeFullScreenButton(minimalFullScreenButton, this::onFullScreenButtonClicked);
 //
@@ -674,9 +654,9 @@ public class StyledPlayerControlView extends FrameLayout {
 //        }
 
         // Progress View Time bar
-        DefaultTimeBar defaultTimeBar = new DefaultTimeBar(context);
-        LayoutParams timeBarParams = new LayoutParams(LayoutParams.MATCH_PARENT, convertToDp(48), Gravity.BOTTOM);
-        timeBarParams.setMargins(0, 0, 0, convertToDp(52));
+        DefaultTimeBar defaultTimeBar = new DefaultTimeBar(context, timeBarAttributes);
+        LayoutParams timeBarParams = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT, Gravity.BOTTOM);
+        timeBarParams.setMargins(0, 0, 0, UiHelper.convertToDp(52));
         defaultTimeBar.setLayoutParams(timeBarParams);
         defaultTimeBar.setTag(ViewIds.exoTimeBar);
         timeBar = defaultTimeBar;
@@ -692,17 +672,11 @@ public class StyledPlayerControlView extends FrameLayout {
         shuffleButton.setOnClickListener(componentListener);
         settingsButton.setOnClickListener(componentListener);
 
-        resources = context.getResources();
-
-        buttonAlphaEnabled = 1f;
-        buttonAlphaDisabled = (float) 33 / 100;
-
         // Add UI elements to activity
-        rootView.addView(controlsBg);
-        rootView.addView(centerControls);
-        rootView.addView(bottomBar);
-        rootView.addView(defaultTimeBar);
-        addView(rootView);
+        addView(controlsBg);
+        addView(centerControls);
+        addView(bottomBar);
+        addView(defaultTimeBar);
 
         controlViewLayoutManager = new StyledPlayerControlViewLayoutManager(this);
         controlViewLayoutManager.setAnimationEnabled(animationEnabled);
@@ -710,14 +684,14 @@ public class StyledPlayerControlView extends FrameLayout {
         String[] settingTexts = new String[2];
         Drawable[] settingIcons = new Drawable[2];
         settingTexts[SETTINGS_PLAYBACK_SPEED_POSITION] = "Speed";
-        settingIcons[SETTINGS_PLAYBACK_SPEED_POSITION] = getDrawable(context, IC_SPEED);
+        settingIcons[SETTINGS_PLAYBACK_SPEED_POSITION] = UiHelper.getDrawable(context, UiHelper.IC_SPEED, debugMode);
         settingTexts[SETTINGS_AUDIO_TRACK_SELECTION_POSITION] = "Audio";
-        settingIcons[SETTINGS_AUDIO_TRACK_SELECTION_POSITION] = getDrawable(context, IC_AUDIO_TRACK);
+        settingIcons[SETTINGS_AUDIO_TRACK_SELECTION_POSITION] = UiHelper.getDrawable(context, UiHelper.IC_AUDIO_TRACK, debugMode);
         settingsAdapter = new SettingsAdapter(settingTexts, settingIcons);
-        settingsWindowMargin = convertToDp(8);
+        settingsWindowMargin = UiHelper.convertToDp(8);
         settingsView = new RecyclerView(context);
         settingsView.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
-        settingsView.setBackgroundColor(alphaBlack);
+        settingsView.setBackgroundColor(UiHelper.TRANSPARENT_BLACK);
         settingsView.setAdapter(settingsAdapter);
         settingsView.setLayoutManager(new LinearLayoutManager(getContext()));
         settingsWindow =
@@ -735,15 +709,15 @@ public class StyledPlayerControlView extends FrameLayout {
         audioTrackSelectionAdapter = new AudioTrackSelectionAdapter();
         playbackSpeedAdapter = new PlaybackSpeedAdapter(speedOptions, speedOptionsInto100);
 
-        subtitleOnButtonDrawable = getDrawable(context, IC_SUBTITLE_ON);
-        subtitleOffButtonDrawable = getDrawable(context, IC_SUBTITLE_OFF);
-        fullScreenExitDrawable = getDrawable(context, IC_FULLSCREEN_EXIT);
-        fullScreenEnterDrawable = getDrawable(context, IC_FULLSCREEN_ENTER);
-        repeatOffButtonDrawable = getDrawable(context, IC_REPEAT_OFF);
-        repeatOneButtonDrawable = getDrawable(context, IC_REPEAT_ONE);
-        repeatAllButtonDrawable = getDrawable(context, IC_REPEAT_ALL);
-        shuffleOnButtonDrawable = getDrawable(context, IC_SHUFFLE_ON);
-        shuffleOffButtonDrawable = getDrawable(context, IC_SHUFFLE_OFF);
+        subtitleOnButtonDrawable = UiHelper.getDrawable(context, UiHelper.IC_SUBTITLE_ON, debugMode);
+        subtitleOffButtonDrawable = UiHelper.getDrawable(context, UiHelper.IC_SUBTITLE_OFF, debugMode);
+        fullScreenExitDrawable = UiHelper.getDrawable(context, UiHelper.IC_FULLSCREEN_EXIT, debugMode);
+        fullScreenEnterDrawable = UiHelper.getDrawable(context, UiHelper.IC_FULLSCREEN_ENTER, debugMode);
+        repeatOffButtonDrawable = UiHelper.getDrawable(context, UiHelper.IC_REPEAT_OFF, debugMode);
+        repeatOneButtonDrawable = UiHelper.getDrawable(context, UiHelper.IC_REPEAT_ONE, debugMode);
+        repeatAllButtonDrawable = UiHelper.getDrawable(context, UiHelper.IC_REPEAT_ALL, debugMode);
+        shuffleOnButtonDrawable = UiHelper.getDrawable(context, UiHelper.IC_SHUFFLE_ON, debugMode);
+        shuffleOffButtonDrawable = UiHelper.getDrawable(context, UiHelper.IC_SHUFFLE_OFF, debugMode);
 
         fullScreenExitContentDescription = "Exit fullscreen";
         fullScreenEnterContentDescription = "Enter fullscreen";
@@ -764,6 +738,7 @@ public class StyledPlayerControlView extends FrameLayout {
         controlViewLayoutManager.setShowButton(shuffleButton, showShuffleButton);
         controlViewLayoutManager.setShowButton(subtitleButton, showSubtitleButton);
         controlViewLayoutManager.setShowButton(repeatToggleButton, repeatToggleModes != RepeatModeUtil.REPEAT_TOGGLE_MODE_NONE);
+        controlViewLayoutManager.setShowButton(fullScreenButton, showFullscreenButton);
         addOnLayoutChangeListener(this::onLayoutChange);
     }
 
@@ -799,7 +774,7 @@ public class StyledPlayerControlView extends FrameLayout {
         return true;
     }
 
-    private static void initializeFullScreenButton(View fullScreenButton, OnClickListener listener) {
+    private static void initializeFullScreenButton(@Nullable View fullScreenButton, OnClickListener listener) {
         if (fullScreenButton == null) {
             return;
         }
@@ -816,80 +791,6 @@ public class StyledPlayerControlView extends FrameLayout {
             fullScreenButton.setVisibility(VISIBLE);
         } else {
             fullScreenButton.setVisibility(GONE);
-        }
-    }
-
-    private int convertToDp(float dip) {
-        DisplayMetrics displayMetric = Resources.getSystem().getDisplayMetrics();
-        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dip, displayMetric);
-    }
-
-    private ImageButton createCenterImageButton(Context context, Drawable drawable) {
-        ImageButton button = new ImageButton(context);
-        ViewGroup.MarginLayoutParams params = new ViewGroup.MarginLayoutParams(convertToDp(50), convertToDp(50));
-        int margin = convertToDp(5);
-        params.setMargins(margin, 0, margin, 0);
-        button.setLayoutParams(params);
-        button.setImageDrawable(drawable);
-        button.setScaleType(ImageView.ScaleType.FIT_CENTER);
-        int padding = convertToDp(4);
-        button.setPadding(padding, padding, padding, padding);
-        setSelectableBackground(button);
-        return button;
-    }
-
-    private ImageButton createBottomImageButton(Context context, Drawable drawable) {
-        ImageButton button = new ImageButton(context);
-        ViewGroup.MarginLayoutParams params = new ViewGroup.MarginLayoutParams(convertToDp(48), convertToDp(48));
-        int margin = convertToDp(2);
-        params.setMargins(margin, 0, margin, 0);
-        button.setLayoutParams(params);
-        button.setImageDrawable(drawable);
-        button.setScaleType(ImageView.ScaleType.FIT_CENTER);
-        int padding = convertToDp(12);
-        button.setPadding(padding, padding, padding, padding);
-        setSelectableBackground(button);
-        return button;
-    }
-
-    private void setSelectableBackground(View view) {
-        TypedValue outValue = new TypedValue();
-        context.getTheme().resolveAttribute(android.R.attr.selectableItemBackground, outValue, true);
-        view.setBackgroundResource(outValue.resourceId);
-    }
-
-    @Nullable
-    private Drawable getDrawable(Context context, String fileName) {
-        try {
-            InputStream inputStream = this.getAsset(context, fileName);
-            Drawable drawable = Drawable.createFromStream(inputStream, null);
-            inputStream.close();
-            return drawable;
-        } catch (Exception e) {
-            Log.v(LOG_TAG, "getDrawable : Error = " + e);
-            return null;
-        }
-    }
-
-    private InputStream getAsset(Context context, String file) {
-        try {
-            if (this.debugMode) {
-                String path;
-                if (Build.VERSION.SDK_INT >= 29) {
-                    path = context.getExternalFilesDir((String) null).toString() + "/assets/" + file;
-                } else if (context.getClass().getName().contains("makeroid")) {
-                    path = "/storage/emulated/0/Kodular/assets/" + file;
-                } else {
-                    path = "/storage/emulated/0/AppInventor/assets/" + file;
-                }
-                Log.v(LOG_TAG, "getAsset | Filepath = " + path);
-                return new FileInputStream(new File(path));
-            } else {
-                return context.getAssets().open(file);
-            }
-        } catch (Exception e) {
-            Log.e(LOG_TAG, "getAsset | Debug Mode : " + this.debugMode + " | Error : " + e);
-            return null;
         }
     }
 
@@ -963,7 +864,7 @@ public class StyledPlayerControlView extends FrameLayout {
             this.extraAdGroupTimesMs = new long[0];
             this.extraPlayedAdGroups = new boolean[0];
         } else {
-            extraPlayedAdGroups = checkNotNull(extraPlayedAdGroups);
+            checkNotNull(extraPlayedAdGroups);
             Assertions.checkArgument(extraAdGroupTimesMs.length == extraPlayedAdGroups.length);
             this.extraAdGroupTimesMs = extraAdGroupTimesMs;
             this.extraPlayedAdGroups = extraPlayedAdGroups;
@@ -1291,11 +1192,11 @@ public class StyledPlayerControlView extends FrameLayout {
         if (playPauseButton != null) {
             if (shouldShowPauseButton()) {
                 ((ImageView) playPauseButton)
-                        .setImageDrawable(getDrawable(context, IC_PAUSE));
+                        .setImageDrawable(UiHelper.getDrawable(context, UiHelper.IC_PAUSE, debugMode));
                 playPauseButton.setContentDescription("Pause");
             } else {
                 ((ImageView) playPauseButton)
-                        .setImageDrawable(getDrawable(context, IC_PLAY));
+                        .setImageDrawable(UiHelper.getDrawable(context, UiHelper.IC_PLAY, debugMode));
                 playPauseButton.setContentDescription("Play");
             }
         }
@@ -1670,7 +1571,7 @@ public class StyledPlayerControlView extends FrameLayout {
             return;
         }
         view.setEnabled(enabled);
-        view.setAlpha(enabled ? buttonAlphaEnabled : buttonAlphaDisabled);
+        view.setAlpha(enabled ? UiHelper.BUTTON_ENABLED_ALPHA : UiHelper.BUTTON_DISABLED_ALPHA);
     }
 
     private void seekToTimeBarPosition(Player player, long positionMs) {
@@ -2078,38 +1979,34 @@ public class StyledPlayerControlView extends FrameLayout {
             // Inflate List Item here
             LinearLayout listItem = new LinearLayout(context);
             listItem.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
-            listItem.setMinimumHeight(convertToDp(52));
-            listItem.setMinimumWidth(convertToDp(150));
+            listItem.setMinimumHeight(UiHelper.convertToDp(52));
+            listItem.setMinimumWidth(UiHelper.convertToDp(150));
             listItem.setOrientation(LinearLayout.HORIZONTAL);
 
             ImageView icon = new ImageView(context);
-            LayoutParams iconParams = new LayoutParams(convertToDp(24), convertToDp(24));
-            iconParams.setMargins(convertToDp(8), convertToDp(12), convertToDp(8), 0);
+            LayoutParams iconParams = new LayoutParams(UiHelper.convertToDp(24), UiHelper.convertToDp(24));
+            iconParams.setMargins(UiHelper.convertToDp(8), UiHelper.convertToDp(12), UiHelper.convertToDp(8), 0);
             icon.setLayoutParams(iconParams);
             icon.setTag(LIST_ICON_TAG);
 
             LinearLayout listLabels = new LinearLayout(context);
             LayoutParams params = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
-            params.setMargins(convertToDp(2), 0, convertToDp(2), 0);
+            params.setMargins(UiHelper.convertToDp(2), 0, UiHelper.convertToDp(2), 0);
             listLabels.setLayoutParams(params);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-                listLabels.setPaddingRelative(0, 0, convertToDp(4), 0);
-            }
-            listLabels.setPadding(0, 0, convertToDp(4), 0);
+            listLabels.setPaddingRelative(0, 0, UiHelper.convertToDp(4), 0);
+            listLabels.setPadding(0, 0, UiHelper.convertToDp(4), 0);
             listLabels.setOrientation(LinearLayout.VERTICAL);
             listLabels.setGravity(Gravity.CENTER | Gravity.START);
 
-            int whiteColor = Color.parseColor("#FFFFFF");
-
             TextView mainText = new TextView(context);
             mainText.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
-            mainText.setTextColor(whiteColor);
+            mainText.setTextColor(Color.WHITE);
             mainText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
             mainText.setTag(LIST_MAIN_TEXT_TAG);
 
             TextView subText = new TextView(context);
             subText.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
-            subText.setTextColor(whiteColor);
+            subText.setTextColor(Color.WHITE);
             subText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
             subText.setTag(LIST_SUB_TEXT_TAG);
 
@@ -2210,34 +2107,32 @@ public class StyledPlayerControlView extends FrameLayout {
             // Inflate List Item here
             LinearLayout listItem = new LinearLayout(context);
             listItem.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
-            listItem.setMinimumHeight(convertToDp(52));
-            listItem.setMinimumWidth(convertToDp(150));
+            listItem.setMinimumHeight(UiHelper.convertToDp(52));
+            listItem.setMinimumWidth(UiHelper.convertToDp(150));
             listItem.setOrientation(LinearLayout.HORIZONTAL);
-            TypedValue outValue = new TypedValue();
-            context.getTheme().resolveAttribute(android.R.attr.selectableItemBackground, outValue, true);
-            listItem.setBackgroundResource(outValue.resourceId);
-            setSelectableBackground(listItem);
+            listItem.setFocusable(true);
+            UiHelper.setSelectableBackground(listItem, false);
+            listItem.setGravity(Gravity.CENTER | Gravity.START);
+            listItem.setPaddingRelative(UiHelper.convertToDp(4), 0, UiHelper.convertToDp(4), 0);
 
             ImageView icon = new ImageView(context);
-            LayoutParams iconParams = new LayoutParams(convertToDp(24), convertToDp(24));
-            iconParams.setMargins(convertToDp(8), convertToDp(12), convertToDp(8), 0);
+            MarginLayoutParams iconParams = new MarginLayoutParams(UiHelper.convertToDp(24), UiHelper.convertToDp(24));
+            iconParams.setMargins(UiHelper.convertToDp(8), 0, UiHelper.convertToDp(8), 0);
             icon.setLayoutParams(iconParams);
             icon.setVisibility(View.INVISIBLE);
             icon.setTag(LIST_ICON_TAG);
-            icon.setImageDrawable(getDrawable(context, IC_CHECK));
+            icon.setImageDrawable(UiHelper.getDrawable(context, UiHelper.IC_CHECK, debugMode));
 
             TextView mainText = new TextView(context);
-            LayoutParams params = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
-            int margin = convertToDp(4);
+            MarginLayoutParams params = new MarginLayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+            int margin = UiHelper.convertToDp(4);
             params.setMargins(0, 0, margin, 0);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-                params.setMarginEnd(margin);
-            }
+            params.setMarginEnd(margin);
             mainText.setLayoutParams(params);
             mainText.setTextColor(whiteColor);
             mainText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
             mainText.setTag(LIST_MAIN_TEXT_TAG);
-            mainText.setMinHeight(convertToDp(52));
+            mainText.setMinHeight(UiHelper.convertToDp(52));
             mainText.setGravity(Gravity.CENTER | Gravity.START);
 
             listItem.addView(icon);
@@ -2272,11 +2167,11 @@ public class StyledPlayerControlView extends FrameLayout {
         @Override
         public void init(
                 List<Integer> rendererIndices,
-                List<TrackInfo> trackInfos,
+                List<TrackInfo> trackInfo,
                 MappedTrackInfo mappedTrackInfo) {
             boolean subtitleIsOn = false;
-            for (int i = 0; i < trackInfos.size(); i++) {
-                if (trackInfos.get(i).selected) {
+            for (int i = 0; i < trackInfo.size(); i++) {
+                if (trackInfo.get(i).selected) {
                     subtitleIsOn = true;
                     break;
                 }
@@ -2289,7 +2184,7 @@ public class StyledPlayerControlView extends FrameLayout {
                         subtitleIsOn ? subtitleOnContentDescription : subtitleOffContentDescription);
             }
             this.rendererIndices = rendererIndices;
-            this.tracks = trackInfos;
+            this.tracks = trackInfo;
             this.mappedTrackInfo = mappedTrackInfo;
         }
 
@@ -2380,7 +2275,7 @@ public class StyledPlayerControlView extends FrameLayout {
         @Override
         public void init(
                 List<Integer> rendererIndices,
-                List<TrackInfo> trackInfos,
+                List<TrackInfo> trackInfo,
                 MappedTrackInfo mappedTrackInfo) {
             // Update subtext in settings menu with current audio track selection.
             boolean hasSelectionOverride = false;
@@ -2393,19 +2288,17 @@ public class StyledPlayerControlView extends FrameLayout {
                     break;
                 }
             }
-            if (trackInfos.isEmpty()) {
+            if (trackInfo.isEmpty()) {
                 settingsAdapter.setSubTextAtPosition(
                         SETTINGS_AUDIO_TRACK_SELECTION_POSITION,
                         "Auto");
-                // TODO(insun) : Make the audio item in main settings (settingsAdapater)
-                //  to be non-clickable.
             } else if (!hasSelectionOverride) {
                 settingsAdapter.setSubTextAtPosition(
                         SETTINGS_AUDIO_TRACK_SELECTION_POSITION,
                         "Auto");
             } else {
-                for (int i = 0; i < trackInfos.size(); i++) {
-                    TrackInfo track = trackInfos.get(i);
+                for (int i = 0; i < trackInfo.size(); i++) {
+                    TrackInfo track = trackInfo.get(i);
                     if (track.selected) {
                         settingsAdapter.setSubTextAtPosition(
                                 SETTINGS_AUDIO_TRACK_SELECTION_POSITION, track.trackName);
@@ -2414,7 +2307,7 @@ public class StyledPlayerControlView extends FrameLayout {
                 }
             }
             this.rendererIndices = rendererIndices;
-            this.tracks = trackInfos;
+            this.tracks = trackInfo;
             this.mappedTrackInfo = mappedTrackInfo;
         }
     }
@@ -2433,40 +2326,39 @@ public class StyledPlayerControlView extends FrameLayout {
         }
 
         public abstract void init(
-                List<Integer> rendererIndices, List<TrackInfo> trackInfos, MappedTrackInfo mappedTrackInfo);
+                List<Integer> rendererIndices, List<TrackInfo> trackInfo, MappedTrackInfo mappedTrackInfo);
 
         @Override
         public SubSettingViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            int whiteColor = Color.parseColor("#FFFFFF");
-
             // Inflate List Item here
             LinearLayout listItem = new LinearLayout(context);
             listItem.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
-            listItem.setMinimumHeight(convertToDp(52));
-            listItem.setMinimumWidth(convertToDp(150));
+            listItem.setMinimumHeight(UiHelper.convertToDp(52));
+            listItem.setMinimumWidth(UiHelper.convertToDp(150));
             listItem.setOrientation(LinearLayout.HORIZONTAL);
-            setSelectableBackground(listItem);
+            listItem.setFocusable(true);
+            UiHelper.setSelectableBackground(listItem, false);
+            listItem.setGravity(Gravity.CENTER | Gravity.START);
+            listItem.setPaddingRelative(UiHelper.convertToDp(4), 0, UiHelper.convertToDp(4), 0);
 
             ImageView icon = new ImageView(context);
-            LayoutParams iconParams = new LayoutParams(convertToDp(24), convertToDp(24));
-            iconParams.setMargins(convertToDp(8), convertToDp(12), convertToDp(8), 0);
+            MarginLayoutParams iconParams = new MarginLayoutParams(UiHelper.convertToDp(24), UiHelper.convertToDp(24));
+            iconParams.setMargins(UiHelper.convertToDp(8), 0, UiHelper.convertToDp(8), 0);
             icon.setLayoutParams(iconParams);
             icon.setVisibility(View.INVISIBLE);
             icon.setTag(LIST_ICON_TAG);
-            icon.setImageDrawable(getDrawable(context, IC_CHECK));
+            icon.setImageDrawable(UiHelper.getDrawable(context, UiHelper.IC_CHECK, debugMode));
 
             TextView mainText = new TextView(context);
-            LayoutParams params = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
-            int margin = convertToDp(4);
+            MarginLayoutParams params = new MarginLayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+            int margin = UiHelper.convertToDp(4);
             params.setMargins(0, 0, margin, 0);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-                params.setMarginEnd(margin);
-            }
+            params.setMarginEnd(margin);
             mainText.setLayoutParams(params);
-            mainText.setTextColor(whiteColor);
+            mainText.setTextColor(Color.WHITE);
             mainText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
             mainText.setTag(LIST_MAIN_TEXT_TAG);
-            mainText.setMinHeight(convertToDp(52));
+            mainText.setMinHeight(UiHelper.convertToDp(52));
             mainText.setGravity(Gravity.CENTER | Gravity.START);
 
             listItem.addView(icon);
@@ -2494,7 +2386,9 @@ public class StyledPlayerControlView extends FrameLayout {
                                 .getParameters()
                                 .hasSelectionOverride(track.rendererIndex, trackGroups)
                                 && track.selected;
-                holder.textView.setText(track.trackName);
+                // Remove `ItemList : ` and `Item : ` from trackName
+                String trackName = track.trackName.replaceAll("(ItemList : )|(Item : )", "");
+                holder.textView.setText(trackName);
                 holder.checkView.setVisibility(explicitlySelected ? VISIBLE : INVISIBLE);
                 holder.itemView.setOnClickListener(
                         v -> {
@@ -2518,7 +2412,7 @@ public class StyledPlayerControlView extends FrameLayout {
                                     }
                                 }
                                 checkNotNull(trackSelector).setParameters(parametersBuilder);
-                                onTrackSelection(track.trackName);
+                                onTrackSelection(trackName);
                                 settingsWindow.dismiss();
                             }
                         });
