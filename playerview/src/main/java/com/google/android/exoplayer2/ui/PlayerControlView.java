@@ -32,6 +32,7 @@ import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
 import android.os.Build;
 import android.os.Looper;
 import android.os.SystemClock;
@@ -64,7 +65,6 @@ import com.google.android.exoplayer2.util.Assertions;
 import com.google.android.exoplayer2.util.RepeatModeUtil;
 import com.google.android.exoplayer2.util.Util;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.util.Arrays;
@@ -323,7 +323,7 @@ public class PlayerControlView extends FrameLayout {
     @Nullable
     private final ImageView shuffleButton;
     @Nullable
-    private final View vrButton;
+    private final View vrButton = null;
     @Nullable
     private final TextView durationView;
     @Nullable
@@ -336,15 +336,16 @@ public class PlayerControlView extends FrameLayout {
     private final Timeline.Window window;
     private final Runnable updateProgressAction;
     private final Runnable hideAction;
-    private final float buttonAlphaEnabled;
-    private final float buttonAlphaDisabled;
-    private final Context context;
-    private final boolean debugMode;
-    private Drawable repeatOffButtonDrawable;
-    private Drawable repeatOneButtonDrawable;
-    private Drawable repeatAllButtonDrawable;
-    private Drawable shuffleOnButtonDrawable;
-    private Drawable shuffleOffButtonDrawable;
+    @Nullable
+    private final Drawable repeatOffButtonDrawable;
+    @Nullable
+    private final Drawable repeatOneButtonDrawable;
+    @Nullable
+    private final Drawable repeatAllButtonDrawable;
+    @Nullable
+    private final Drawable shuffleOnButtonDrawable;
+    @Nullable
+    private final Drawable shuffleOffButtonDrawable;
     @Nullable
     private Player player;
     private ControlDispatcher controlDispatcher;
@@ -358,8 +359,6 @@ public class PlayerControlView extends FrameLayout {
     private boolean scrubbing;
     private int showTimeoutMs;
     private int timeBarMinUpdateIntervalMs;
-    //    private @RepeatModeUtil.RepeatToggleModes
-//    int repeatToggleModes;
     private int repeatToggleModes;
     private boolean showRewindButton;
     private boolean showFastForwardButton;
@@ -374,13 +373,15 @@ public class PlayerControlView extends FrameLayout {
     private long currentWindowOffset;
 
     public PlayerControlView(Context context) {
-        this(context, /* attrs= */ PlayerAttributes.createDefault());
+        this(context, /* attrs= */ TimeBarAttributes.createDefault());
     }
 
-    public PlayerControlView(Context context, PlayerAttributes attributes) {
-        super(context, null, 0);
+    public PlayerControlView(Context context, TimeBarAttributes timeBarAttributes) {
+        this(context,timeBarAttributes,PlayerAttributes.createDefault());
+    }
 
-        this.context = context;
+    public PlayerControlView(Context context, TimeBarAttributes timeBarAttributes, PlayerAttributes attributes) {
+        super(context, null, 0);
 
         showTimeoutMs = attributes.getShowTimeoutMs();
         repeatToggleModes = attributes.getRepeatToggleModes();
@@ -393,7 +394,7 @@ public class PlayerControlView extends FrameLayout {
         showShuffleButton = attributes.getShowShuffleButton();
         int rewindMs = attributes.getRewindMs();
         int fastForwardMs = attributes.getFastForwardMs();
-        debugMode = attributes.isDebugMode();
+        boolean debugMode = attributes.isDebugMode();
 
         visibilityListeners = new CopyOnWriteArrayList<>();
         period = new Timeline.Period();
@@ -410,43 +411,40 @@ public class PlayerControlView extends FrameLayout {
         hideAction = this::hide;
 
         // Inflate UI here
-        int alphaBlack = Color.parseColor("#CC000000");
-        int whiteColor = Color.parseColor("#FFBEBEBE");
-        String initialDuration = "00:00:00";
-        int padding = convertToDp(4f);
+        int padding = UiHelper.convertToDp(6f);
+        GradientDrawable gradient = new GradientDrawable(GradientDrawable.Orientation.BOTTOM_TOP, new int[]{Color.BLACK, Color.TRANSPARENT});
 
         // Create a parent Linear Layout to hold other views and place it at bottom
         LinearLayout rootView = new LinearLayout(context);
         rootView.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT, Gravity.BOTTOM));
-        rootView.setBackgroundColor(alphaBlack);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            rootView.setLayoutDirection(LAYOUT_DIRECTION_LTR);
-        }
+        rootView.setLayoutDirection(LAYOUT_DIRECTION_LTR);
         rootView.setOrientation(LinearLayout.VERTICAL);
+        rootView.setBackground(gradient);
+        rootView.setPadding(0,padding,0,padding);
 
         // Create a linear layout to hold video controls
         LinearLayout controlsContainer = new LinearLayout(context);
         controlsContainer.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-        controlsContainer.setPadding(0, padding, 0, 0);
+        controlsContainer.setPadding(0, padding, 0, padding);
         controlsContainer.setOrientation(LinearLayout.HORIZONTAL);
         controlsContainer.setGravity(Gravity.CENTER);
 
         // Play Btn
-        playButton = createImageButton(context, getDrawable(context, IC_PLAY));
+        playButton = UiHelper.createCenterImageButton(context, UiHelper.getDrawable(context, UiHelper.IC_PLAY, debugMode));
         // Pause Btn
-        pauseButton = createImageButton(context, getDrawable(context, IC_PAUSE));
+        pauseButton = UiHelper.createCenterImageButton(context, UiHelper.getDrawable(context, UiHelper.IC_PAUSE, debugMode));
         // Rewind Btn
-        rewindButton = createImageButton(context, getDrawable(context, IC_REWIND));
+        rewindButton = UiHelper.createCenterImageButton(context, UiHelper.getDrawable(context, UiHelper.IC_REWIND, debugMode));
         // Fast forward button
-        fastForwardButton = createImageButton(context, getDrawable(context, IC_FAST_FORWARD));
+        fastForwardButton = UiHelper.createCenterImageButton(context, UiHelper.getDrawable(context, UiHelper.IC_FAST_FORWARD, debugMode));
         // Next Button
-        nextButton = createImageButton(context, getDrawable(context, IC_NEXT));
+        nextButton = UiHelper.createCenterImageButton(context, UiHelper.getDrawable(context, UiHelper.IC_NEXT, debugMode));
         // Previous Button
-        previousButton = createImageButton(context, getDrawable(context, IC_PREVIOUS));
+        previousButton = UiHelper.createCenterImageButton(context, UiHelper.getDrawable(context, UiHelper.IC_PREVIOUS, debugMode));
         // Repeat Toggle Button
-        repeatToggleButton = createImageButton(context, null);
+        repeatToggleButton = UiHelper.createCenterImageButton(context, UiHelper.getDrawable(context, UiHelper.IC_REPEAT_OFF, debugMode));
         // Shuffle Button
-        shuffleButton = createImageButton(context, null);
+        shuffleButton = UiHelper.createCenterImageButton(context, UiHelper.getDrawable(context, UiHelper.IC_SHUFFLE_OFF, debugMode));
 
         // Add buttons to controls container
         controlsContainer.addView(previousButton);
@@ -467,26 +465,26 @@ public class PlayerControlView extends FrameLayout {
 
         // Current Position
         positionView = new TextView(context);
-        positionView.setTextColor(whiteColor);
+        positionView.setTextColor(UiHelper.DIM_WHITE);
         positionView.setPadding(padding, 0, padding, 0);
         positionView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
-        positionView.setText(initialDuration);
+        positionView.setText(UiHelper.INITIAL_DURATION);
         positionView.setTypeface(positionView.getTypeface(), Typeface.BOLD);
         positionView.setIncludeFontPadding(false);
         positionView.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
 
         // Duration Label
         durationView = new TextView(context);
-        durationView.setTextColor(whiteColor);
+        durationView.setTextColor(UiHelper.DIM_WHITE);
         durationView.setPadding(padding, 0, padding, 0);
         durationView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
-        durationView.setText(initialDuration);
+        durationView.setText(UiHelper.INITIAL_DURATION);
         durationView.setTypeface(durationView.getTypeface(), Typeface.BOLD);
         durationView.setIncludeFontPadding(false);
         durationView.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
 
         // Time bar
-        DefaultTimeBar defaultTimeBar = new DefaultTimeBar(context);
+        DefaultTimeBar defaultTimeBar = new DefaultTimeBar(context,timeBarAttributes);
         defaultTimeBar.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1));
         timeBar = defaultTimeBar;
 
@@ -511,23 +509,13 @@ public class PlayerControlView extends FrameLayout {
         shuffleButton.setOnClickListener(componentListener);
         repeatToggleButton.setOnClickListener(componentListener);
 
-
-        vrButton = null;
-        setShowVrButton(false);
-        updateButton(false, false, vrButton);
-
-
-        buttonAlphaEnabled = 1f;
-        buttonAlphaDisabled = (float) 33 / 100;
-
-        repeatOffButtonDrawable = getDrawable(context, IC_REPEAT_OFF);
-        repeatOneButtonDrawable = getDrawable(context, IC_REPEAT_ONE);
-        repeatAllButtonDrawable = getDrawable(context, IC_REPEAT_ALL);
-        shuffleOnButtonDrawable = getDrawable(context, IC_SHUFFLE_ON);
-        shuffleOffButtonDrawable = getDrawable(context, IC_SHUFFLE_OFF);
+        repeatOffButtonDrawable = UiHelper.getDrawable(context, UiHelper.IC_REPEAT_OFF, debugMode);
+        repeatOneButtonDrawable = UiHelper.getDrawable(context, UiHelper.IC_REPEAT_ONE, debugMode);
+        repeatAllButtonDrawable = UiHelper.getDrawable(context, UiHelper.IC_REPEAT_ALL, debugMode);
+        shuffleOnButtonDrawable = UiHelper.getDrawable(context, UiHelper.IC_SHUFFLE_ON, debugMode);
+        shuffleOffButtonDrawable = UiHelper.getDrawable(context, UiHelper.IC_SHUFFLE_OFF, debugMode);
 
         addView(rootView);
-        updateIcons();
     }
 
     @SuppressLint("InlinedApi")
@@ -562,72 +550,14 @@ public class PlayerControlView extends FrameLayout {
         return true;
     }
 
-    private int convertToDp(float dip) {
-        DisplayMetrics displayMetric = Resources.getSystem().getDisplayMetrics();
-        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dip, displayMetric);
-    }
-
-    private ImageButton createImageButton(Context context, Drawable drawable) {
-        ImageButton button = new ImageButton(context);
-        button.setLayoutParams(new ViewGroup.LayoutParams(convertToDp(50), convertToDp(50)));
-        button.setImageDrawable(drawable);
-        button.setBackgroundColor(Color.parseColor("#00000000"));
-        button.setScaleType(ImageView.ScaleType.FIT_CENTER);
-        return button;
-    }
-
-    private Drawable getDrawable(Context context, String fileName) {
-        try {
-            InputStream inputStream = this.getAsset(context, fileName);
-            Drawable drawable = Drawable.createFromStream(inputStream, null);
-            inputStream.close();
-            return drawable;
-        } catch (Exception e) {
-            Log.v(LOG_TAG, "getDrawable : Error = " + e);
-            return null;
-        }
-    }
-
-    private InputStream getAsset(Context context, String file) {
-        try {
-            if (this.debugMode) {
-                String path;
-                if (Build.VERSION.SDK_INT >= 29) {
-                    path = context.getExternalFilesDir((String) null).toString() + "/assets/" + file;
-                } else if (context.getClass().getName().contains("makeroid")) {
-                    path = "/storage/emulated/0/Kodular/assets/" + file;
-                } else {
-                    path = "/storage/emulated/0/AppInventor/assets/" + file;
-                }
-                Log.v(LOG_TAG, "getAsset | Filepath = " + path);
-                return new FileInputStream(new File(path));
-            } else {
-                return context.getAssets().open(file);
-            }
-        } catch (Exception e) {
-            Log.e(LOG_TAG, "getAsset | Debug Mode : " + this.debugMode + " | Error : " + e);
-            return null;
-        }
-    }
-
-    private void updateIcons() {
-        try {
-            repeatOffButtonDrawable = getDrawable(context, IC_REPEAT_OFF);
-            repeatOneButtonDrawable = getDrawable(context, IC_REPEAT_ONE);
-            repeatAllButtonDrawable = getDrawable(context, IC_REPEAT_ALL);
-            shuffleOnButtonDrawable = getDrawable(context, IC_SHUFFLE_ON);
-            shuffleOffButtonDrawable = getDrawable(context, IC_SHUFFLE_OFF);
-            ((ImageButton) this.playButton).setImageDrawable(this.getDrawable(this.context, "ic_play.png"));
-            ((ImageButton) this.pauseButton).setImageDrawable(this.getDrawable(this.context, "ic_pause.png"));
-            ((ImageButton) this.fastForwardButton).setImageDrawable(this.getDrawable(this.context, "ic_fast_forward.png"));
-            ((ImageButton) this.rewindButton).setImageDrawable(this.getDrawable(this.context, "ic_rewind.png"));
-            ((ImageButton) this.nextButton).setImageDrawable(this.getDrawable(this.context, "ic_next.png"));
-            ((ImageButton) this.previousButton).setImageDrawable(this.getDrawable(this.context, "ic_previous.png"));
-        } catch (Exception e) {
-            Log.e(LOG_TAG, "updateIcons | Error :" + e);
-        }
-
-    }
+//    private ImageButton createImageButton(Context context, Drawable drawable) {
+//        ImageButton button = new ImageButton(context);
+//        button.setLayoutParams(new ViewGroup.LayoutParams(convertToDp(50), convertToDp(50)));
+//        button.setImageDrawable(drawable);
+//        button.setBackgroundColor(Color.parseColor("#00000000"));
+//        button.setScaleType(ImageView.ScaleType.FIT_CENTER);
+//        return button;
+//    }
 
     /**
      * Returns the {@link Player} currently being controlled by this view, or null if no player is
@@ -1255,7 +1185,7 @@ public class PlayerControlView extends FrameLayout {
             return;
         }
         view.setEnabled(enabled);
-        view.setAlpha(enabled ? buttonAlphaEnabled : buttonAlphaDisabled);
+        view.setAlpha(enabled ? UiHelper.BUTTON_ENABLED_ALPHA : UiHelper.BUTTON_DISABLED_ALPHA);
         view.setVisibility(visible ? VISIBLE : GONE);
     }
 

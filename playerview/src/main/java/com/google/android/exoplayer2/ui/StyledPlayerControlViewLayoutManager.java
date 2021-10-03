@@ -212,8 +212,8 @@ final class StyledPlayerControlViewLayoutManager {
                     }
                 });
 
-        float translationYForProgressBar = convertToDp(58);
-        float translationYForNoBars = convertToDp(60);
+        float translationYForProgressBar = UiHelper.convertToDp(58);
+        float translationYForNoBars = UiHelper.convertToDp(60);
 
         hideMainBarAnimator = new AnimatorSet();
         hideMainBarAnimator.setDuration(DURATION_FOR_HIDING_ANIMATION_MS);
@@ -394,11 +394,6 @@ final class StyledPlayerControlViewLayoutManager {
             height += marginLayoutParams.topMargin + marginLayoutParams.bottomMargin;
         }
         return height;
-    }
-
-    private int convertToDp(float dip) {
-        DisplayMetrics displayMetric = Resources.getSystem().getDisplayMetrics();
-        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dip, displayMetric);
     }
 
     public void show() {
@@ -652,7 +647,7 @@ final class StyledPlayerControlViewLayoutManager {
 
         if (timeBar != null) {
             MarginLayoutParams timeBarParams = (MarginLayoutParams) timeBar.getLayoutParams();
-            int timeBarMarginBottom = convertToDp(52);
+            int timeBarMarginBottom = UiHelper.convertToDp(52);
             timeBarParams.bottomMargin = (isMinimalMode ? 0 : timeBarMarginBottom);
             timeBar.setLayoutParams(timeBarParams);
             if (timeBar instanceof DefaultTimeBar) {

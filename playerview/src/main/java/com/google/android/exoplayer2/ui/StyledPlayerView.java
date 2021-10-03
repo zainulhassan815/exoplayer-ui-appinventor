@@ -333,11 +333,16 @@ public class StyledPlayerView extends FrameLayout implements AdViewProvider {
     private boolean controllerHideOnTouch;
     private int textureViewRotation;
     private boolean isTouching;
+
     public StyledPlayerView(Context context) {
-        this(context, PlayerAttributes.createDefault());
+        this(context, TimeBarAttributes.createDefault());
     }
 
-    public StyledPlayerView(Context context, PlayerAttributes attributes) {
+    public StyledPlayerView(Context context, TimeBarAttributes timeBarAttributes) {
+        this(context, timeBarAttributes, PlayerAttributes.createDefault());
+    }
+
+    public StyledPlayerView(Context context, TimeBarAttributes timeBarAttributes, PlayerAttributes playerAttributes) {
         super(context, null, 0);
 
         componentListener = new ComponentListener();
@@ -364,18 +369,17 @@ public class StyledPlayerView extends FrameLayout implements AdViewProvider {
         int errorMessageBg = Color.parseColor("#AA000000");
 
         int shutterColor = Color.parseColor("#000000");
-        boolean useArtwork = attributes.getUseArtWork();
-        boolean useController = attributes.getUseController();
-        int surfaceType = attributes.getSurfaceType();
-        int resizeMode = attributes.getResizeMode();
-        int controllerShowTimeoutMs = attributes.getControllerTimeout();
-        boolean controllerHideOnTouch = attributes.getHideOnTouch();
-        boolean controllerAutoShow = attributes.getAutoShowController();
-        boolean controllerHideDuringAds = attributes.getHideDuringAds();
-        int showBuffering = attributes.getShowBuffering();
+        boolean useArtwork = playerAttributes.getUseArtWork();
+        boolean useController = playerAttributes.getUseController();
+        int surfaceType = playerAttributes.getSurfaceType();
+        int resizeMode = playerAttributes.getResizeMode();
+        int controllerShowTimeoutMs = playerAttributes.getControllerTimeout();
+        boolean controllerHideOnTouch = playerAttributes.getHideOnTouch();
+        boolean controllerAutoShow = playerAttributes.getAutoShowController();
+        boolean controllerHideDuringAds = playerAttributes.getHideDuringAds();
+        int showBuffering = playerAttributes.getShowBuffering();
 
-        FrameLayout rootView = new FrameLayout(context);
-        rootView.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+        setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
 
         // Create an aspect ratio layout as content frame
         contentFrame = new AspectRatioFrameLayout(context);
@@ -480,7 +484,7 @@ public class StyledPlayerView extends FrameLayout implements AdViewProvider {
         errorMessageView.setVisibility(View.GONE);
 
         // Playback control view.
-        controller = new StyledPlayerControlView(context, attributes);
+        controller = new StyledPlayerControlView(context, timeBarAttributes, playerAttributes);
         controller.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
 
         this.controllerShowTimeoutMs = controllerShowTimeoutMs;
@@ -493,10 +497,9 @@ public class StyledPlayerView extends FrameLayout implements AdViewProvider {
         updateContentDescription();
 
         // Add UI Elements to root view
-        rootView.addView(contentFrame);
-        rootView.addView(controller);
+        addView(contentFrame);
+        addView(controller);
 
-        addView(rootView);
     }
 
     /**
@@ -1417,6 +1420,7 @@ public class StyledPlayerView extends FrameLayout implements AdViewProvider {
             if (drawableWidth > 0 && drawableHeight > 0) {
                 float artworkAspectRatio = (float) drawableWidth / drawableHeight;
                 onContentAspectRatioChanged(contentFrame, artworkAspectRatio);
+                assert artworkView != null;
                 artworkView.setImageDrawable(drawable);
                 artworkView.setVisibility(VISIBLE);
                 return true;

@@ -6,11 +6,10 @@ import com.google.android.exoplayer2.util.RepeatModeUtil;
 
 public class PlayerAttributes {
 
-    private final int surfaceType = PlayerView.SURFACE_TYPE_TEXTURE_VIEW;
+    private final int surfaceType = PlayerView.SURFACE_TYPE_SURFACE_VIEW;
     private final int timeBarMinUpdateIntervalMs = StyledPlayerControlView.DEFAULT_TIME_BAR_MIN_UPDATE_INTERVAL_MS;
     private final int showTimeoutMs = StyledPlayerControlView.DEFAULT_SHOW_TIMEOUT_MS;
     private final long hideAtMs = C.TIME_UNSET;
-    private final boolean showVrButton = false;
     private final boolean useArtWork;
     private final int resizeMode;
     private final int controllerTimeout;
@@ -29,9 +28,10 @@ public class PlayerAttributes {
     private final boolean showNextButton;
     private final boolean showShuffleButton;
     private final boolean showSubtitleButton;
+    private final boolean showFullscreenButton;
     private final boolean animationEnabled;
 
-    public PlayerAttributes(boolean useArtWork, int resizeMode, int controllerTimeout, boolean hideOnTouch, boolean autoShowController, int showBuffering, boolean useController, boolean hideDuringAds, boolean isDebugMode, int rewindMs, int fastForwardMs, int repeatToggleModes, boolean showRewindButton, boolean showFastForwardButton, boolean showPreviousButton, boolean showNextButton, boolean showShuffleButton, boolean showSubtitleButton, boolean animationEnabled) {
+    public PlayerAttributes(boolean useArtWork, int resizeMode, int controllerTimeout, boolean hideOnTouch, boolean autoShowController, int showBuffering, boolean useController, boolean hideDuringAds, boolean isDebugMode, int rewindMs, int fastForwardMs, int repeatToggleModes, boolean showRewindButton, boolean showFastForwardButton, boolean showPreviousButton, boolean showNextButton, boolean showShuffleButton, boolean showSubtitleButton, boolean showFullscreenButton, boolean animationEnabled) {
         this.useArtWork = useArtWork;
         this.resizeMode = resizeMode;
         this.controllerTimeout = controllerTimeout;
@@ -50,6 +50,7 @@ public class PlayerAttributes {
         this.showNextButton = showNextButton;
         this.showShuffleButton = showShuffleButton;
         this.showSubtitleButton = showSubtitleButton;
+        this.showFullscreenButton = showFullscreenButton;
         this.animationEnabled = animationEnabled;
     }
 
@@ -73,6 +74,7 @@ public class PlayerAttributes {
                 /* showNextButton */true,
                 /* showShuffleButton */false,
                 /* showSubtitleButton */true,
+                /* showFullscreenButton */false,
                 /* animationEnabled */true
         );
     }
@@ -91,10 +93,6 @@ public class PlayerAttributes {
 
     public long getHideAtMs() {
         return hideAtMs;
-    }
-
-    public boolean getShowVrButton() {
-        return showVrButton;
     }
 
     public boolean getUseArtWork() {
@@ -172,4 +170,6 @@ public class PlayerAttributes {
     public boolean getAnimationEnabled() {
         return animationEnabled;
     }
+
+    public boolean getShowFullscreenButton() { return showFullscreenButton; }
 }
