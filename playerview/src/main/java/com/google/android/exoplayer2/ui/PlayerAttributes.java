@@ -6,7 +6,7 @@ import com.google.android.exoplayer2.util.RepeatModeUtil;
 
 public class PlayerAttributes {
 
-    private final int surfaceType = PlayerView.SURFACE_TYPE_SURFACE_VIEW;
+    private final int surfaceType;
     private final int timeBarMinUpdateIntervalMs = StyledPlayerControlView.DEFAULT_TIME_BAR_MIN_UPDATE_INTERVAL_MS;
     private final int showTimeoutMs = StyledPlayerControlView.DEFAULT_SHOW_TIMEOUT_MS;
     private final long hideAtMs = C.TIME_UNSET;
@@ -31,7 +31,8 @@ public class PlayerAttributes {
     private final boolean showFullscreenButton;
     private final boolean animationEnabled;
 
-    public PlayerAttributes(boolean useArtWork, int resizeMode, int controllerTimeout, boolean hideOnTouch, boolean autoShowController, int showBuffering, boolean useController, boolean hideDuringAds, boolean isDebugMode, int rewindMs, int fastForwardMs, int repeatToggleModes, boolean showRewindButton, boolean showFastForwardButton, boolean showPreviousButton, boolean showNextButton, boolean showShuffleButton, boolean showSubtitleButton, boolean showFullscreenButton, boolean animationEnabled) {
+    public PlayerAttributes(int surfaceType,boolean useArtWork, int resizeMode, int controllerTimeout, boolean hideOnTouch, boolean autoShowController, int showBuffering, boolean useController, boolean hideDuringAds, boolean isDebugMode, int rewindMs, int fastForwardMs, int repeatToggleModes, boolean showRewindButton, boolean showFastForwardButton, boolean showPreviousButton, boolean showNextButton, boolean showShuffleButton, boolean showSubtitleButton, boolean showFullscreenButton, boolean animationEnabled) {
+        this.surfaceType = surfaceType;
         this.useArtWork = useArtWork;
         this.resizeMode = resizeMode;
         this.controllerTimeout = controllerTimeout;
@@ -56,6 +57,7 @@ public class PlayerAttributes {
 
     static PlayerAttributes createDefault() {
         return new PlayerAttributes(
+                PlayerView.SURFACE_TYPE_SURFACE_VIEW,
                 true,
                 /* resizeMode */AspectRatioFrameLayout.RESIZE_MODE_FIT,
                 /* controllerTimeout */PlayerControlView.DEFAULT_SHOW_TIMEOUT_MS,
