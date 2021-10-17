@@ -15,6 +15,7 @@ import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.metadata.Metadata
+import com.google.android.exoplayer2.source.TrackGroupArray
 import com.google.android.exoplayer2.text.Cue
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
 import com.google.android.exoplayer2.ui.StyledPlayerControlView
@@ -37,11 +38,12 @@ class MainActivity : AppCompatActivity(), StyledPlayerControlView.OnFullScreenMo
     private var shouldPlayWhenReady = false
     private var trackSelector: DefaultTrackSelector? = null
     private var trackSelectorParameters: DefaultTrackSelector.Parameters? = null
+    private var listener: Player.Listener? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
+        Log.v(LOG_TAG,"OnCreate")
         trackSelector = DefaultTrackSelector(this)
 
         val container: FrameLayout = findViewById(R.id.video_container)
@@ -55,6 +57,8 @@ class MainActivity : AppCompatActivity(), StyledPlayerControlView.OnFullScreenMo
     }
 
     private fun initializePlayer() {
+
+        Log.v(LOG_TAG,"Initialize Player")
 
         trackSelector = DefaultTrackSelector(this)
         trackSelectorParameters = DefaultTrackSelector.ParametersBuilder(this).build()
@@ -81,14 +85,47 @@ class MainActivity : AppCompatActivity(), StyledPlayerControlView.OnFullScreenMo
             .build()
             .also { exoplayer ->
 
-                playerView?.player = exoplayer
-                playerView?.setControllerOnFullScreenModeChangedListener(this)
+                playerView?.apply {
+                    player = exoplayer
+                    setKeepContentOnPlayerReset(true)
+                    setControllerOnFullScreenModeChangedListener(this@MainActivity)
+                }
 
                 exoplayer.addMediaItems(items)
                 exoplayer.seekTo(currentWindow, playbackPosition)
                 exoplayer.playWhenReady = shouldPlayWhenReady
                 exoplayer.prepare()
-                exoplayer.addListener(object : Player.Listener {
+                listener = object : Player.Listener {
+
+                    override fun onPlaybackStateChanged(state: Int) {
+                        super.onPlaybackStateChanged(state)
+                        try {
+                            if (state == Player.STATE_READY) {
+                                val trackInfo = trackSelector?.currentMappedTrackInfo
+                                val count = trackInfo?.rendererCount ?: 0
+                                for (i in 0 until count) {
+                                    Log.v(LOG_TAG, "Track Array : ${trackInfo?.getTrackGroups(i)}")
+                                    val trackGroupArray: TrackGroupArray? =
+                                        trackInfo?.getTrackGroups(i)
+                                    if (trackGroupArray != null) {
+                                        for (j in 0 until trackGroupArray.length) {
+                                            Log.v(
+                                                LOG_TAG,
+                                                "Track Group : ${trackGroupArray.get(j).length}"
+                                            )
+                                            val trackGroup = trackGroupArray.get(j)
+                                            for (k in 0 until trackGroup.length) {
+                                                Log.v(LOG_TAG, "Track : ${trackGroup.getFormat(k)}")
+                                            }
+                                        }
+                                    }
+
+                                }
+                            }
+                        } catch (e: Exception) {
+                            Log.e(LOG_TAG, "Error : ${e.message}")
+                        }
+                    }
 
                     override fun onMetadata(metadata: Metadata) {
                         super.onMetadata(metadata)
@@ -112,7 +149,9 @@ class MainActivity : AppCompatActivity(), StyledPlayerControlView.OnFullScreenMo
                             "onMediaItemTransition : MediaItem = $mediaItem | Reason : $reason"
                         )
                     }
-                })
+                }
+
+                listener?.let { player?.addListener(it) }
             }
     }
 
@@ -121,12 +160,16 @@ class MainActivity : AppCompatActivity(), StyledPlayerControlView.OnFullScreenMo
             playbackPosition = this.currentPosition
             currentWindow = this.currentWindowIndex
             shouldPlayWhenReady = this.playWhenReady
+            listener?.let { removeListener(it) }
             release()
         }
+        listener = null
         player = null
+        Log.v(LOG_TAG, "releasePlayer : Released = ${player == null}")
     }
 
     override fun onStop() {
+        Log.v(LOG_TAG,"OnStop")
         super.onStop()
         if (Util.SDK_INT >= 24) {
             releasePlayer()
@@ -134,6 +177,7 @@ class MainActivity : AppCompatActivity(), StyledPlayerControlView.OnFullScreenMo
     }
 
     override fun onPause() {
+        Log.v(LOG_TAG,"OnPause")
         super.onPause()
         if (Util.SDK_INT < 24) {
             releasePlayer()
@@ -141,6 +185,7 @@ class MainActivity : AppCompatActivity(), StyledPlayerControlView.OnFullScreenMo
     }
 
     override fun onResume() {
+        Log.v(LOG_TAG,"OnResume")
         super.onResume()
         if ((Util.SDK_INT < 24 || player == null)) {
             initializePlayer()
@@ -148,6 +193,7 @@ class MainActivity : AppCompatActivity(), StyledPlayerControlView.OnFullScreenMo
     }
 
     override fun onStart() {
+        Log.v(LOG_TAG,"OnStart")
         super.onStart()
         if (Util.SDK_INT >= 24) {
             initializePlayer()
@@ -175,15 +221,16 @@ class MainActivity : AppCompatActivity(), StyledPlayerControlView.OnFullScreenMo
         supportActionBar?.hide()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             val controller = window.decorView.windowInsetsController ?: return
-            controller.systemBarsBehavior = WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            controller.systemBarsBehavior =
+                WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
             controller.hide(WindowInsets.Type.systemBars())
         } else {
             window.decorView.fitsSystemWindows = true
             window.decorView.systemUiVisibility = (
                     View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                    // Hide the nav bar and status bar
-                    or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                    or View.SYSTEM_UI_FLAG_FULLSCREEN)
+                            // Hide the nav bar and status bar
+                            or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                            or View.SYSTEM_UI_FLAG_FULLSCREEN)
         }
     }
 
