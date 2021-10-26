@@ -982,6 +982,18 @@ public class StyledPlayerView extends FrameLayout implements AdViewProvider {
     }
 
     /**
+     * Sets the {@link StyledPlayerControlView.OnSettingsWindowDismissListener}.
+     *
+     * @param listener The listener to be notified when settings window is dismissed.
+     *
+     */
+    public void setControllerOnSettingsWindowDismissListener(
+            @Nullable StyledPlayerControlView.OnSettingsWindowDismissListener listener) {
+        Assertions.checkStateNotNull(controller);
+        controller.setOnSettingsWindowDismissListener(listener);
+    }
+
+    /**
      * @deprecated Use {@link #setControlDispatcher(ControlDispatcher)} instead. The view calls {@link
      * ControlDispatcher#dispatchPrepare(Player)} instead of {@link
      * PlaybackPreparer#preparePlayback()}. The {@link DefaultControlDispatcher} that the view
