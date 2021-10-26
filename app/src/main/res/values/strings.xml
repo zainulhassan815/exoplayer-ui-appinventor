@@ -1,4 +1,6 @@
 <resources>
     <string name="app_name">videoplayer</string>
     <string name="set_tracks">Set Tracks</string>
+    <string name="transform_media">Transform Media</string>
+    <string name="select_media">Select Media</string>
 </resources>

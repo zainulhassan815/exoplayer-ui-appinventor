@@ -8,10 +8,4 @@
     android:orientation="vertical"
     tools:context=".MainActivity">
 
-    <ImageButton
-        android:id="@+id/video_settings"
-        android:layout_width="52dp"
-        android:layout_height="52dp"
-        android:contentDescription="Video Settings"
-        android:src="@drawable/ic_baseline_video_settings_24" />
 </FrameLayout>
