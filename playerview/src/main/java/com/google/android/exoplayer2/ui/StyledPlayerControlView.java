@@ -423,6 +423,8 @@ public class StyledPlayerControlView extends FrameLayout {
     private PlaybackPreparer playbackPreparer;
     @Nullable
     private OnFullScreenModeChangedListener onFullScreenModeChangedListener;
+    @Nullable
+    private OnSettingsWindowDismissListener onSettingsWindowDismissListener;
     private boolean isFullScreen;
     private boolean isAttachedToWindow;
     private boolean showMultiWindowTimeBar;
@@ -1134,6 +1136,16 @@ public class StyledPlayerControlView extends FrameLayout {
     }
 
     /**
+     * Sets a listener to be called when settings window or dialog is dismissed.
+     *
+     * @param listener The listener to be called. A value of <code>null</code> removes any existing
+     *                 listener.
+     */
+    public void setOnSettingsWindowDismissListener(@Nullable OnSettingsWindowDismissListener listener) {
+        onSettingsWindowDismissListener = listener;
+    }
+
+    /**
      * Shows the playback controls. If {@link #getShowTimeoutMs()} is positive then the controls will
      * be automatically hidden after this duration of time has elapsed without user input.
      */
@@ -1816,6 +1828,19 @@ public class StyledPlayerControlView extends FrameLayout {
         void onFullScreenModeChanged(boolean isFullScreen);
     }
 
+    /**
+     * Listener to be invoked to inform that popup window is dismissed.
+     */
+    public interface OnSettingsWindowDismissListener {
+        /**
+         * Called to indicate a popup window dismiss.
+         *
+         * @param isFullScreen {@code true} if the video rendering surface should be fullscreen {@code
+         *                     false} otherwise.
+         */
+        void onDismiss(boolean isFullScreen);
+    }
+
     private static final class TrackInfo {
 
         public final int rendererIndex;
@@ -1918,6 +1943,10 @@ public class StyledPlayerControlView extends FrameLayout {
         public void onDismiss() {
             if (needToHideBars) {
                 controlViewLayoutManager.resetHideCallbacks();
+            }
+            /// Should hide system UI again when popup window is dismissed if user is currently in fullscreen mode
+            if (onSettingsWindowDismissListener != null) {
+                onSettingsWindowDismissListener.onDismiss(isFullScreen);
             }
         }
 
