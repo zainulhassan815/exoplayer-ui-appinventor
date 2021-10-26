@@ -9,25 +9,27 @@ import android.view.View
 import android.view.WindowInsets
 import android.view.WindowInsetsController
 import android.widget.FrameLayout
+import android.widget.ImageButton
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.metadata.Metadata
-import com.google.android.exoplayer2.source.TrackGroupArray
 import com.google.android.exoplayer2.text.Cue
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
 import com.google.android.exoplayer2.ui.StyledPlayerControlView
 import com.google.android.exoplayer2.ui.StyledPlayerView
+import com.google.android.exoplayer2.ui.TrackSelectionDialogBuilder
 import com.google.android.exoplayer2.util.MimeTypes
 import com.google.android.exoplayer2.util.Util
 
-class MainActivity : AppCompatActivity(), StyledPlayerControlView.OnFullScreenModeChangedListener {
+class MainActivity : AppCompatActivity(), StyledPlayerControlView.OnFullScreenModeChangedListener,
+    StyledPlayerControlView.VisibilityListener, StyledPlayerControlView.OnSettingsWindowDismissListener {
 
     private var playerView: StyledPlayerView? = null
     private var videoUrl =
-        "https://bitdash-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8"
+        "https://cdn2.ninjatv.co/live/smil:asports.auto.smil/playlist.m3u8"
     private val music = "https://storage.googleapis.com/exoplayer-test-media-0/Jazz_In_Paris.mp3"
     private val subtitles =
         "https://raw.githubusercontent.com/benwfreed/test-subtitles/master/mmvo72166981784.vtt"
@@ -37,13 +39,13 @@ class MainActivity : AppCompatActivity(), StyledPlayerControlView.OnFullScreenMo
     private var playbackPosition: Long = 0L
     private var shouldPlayWhenReady = false
     private var trackSelector: DefaultTrackSelector? = null
-    private var trackSelectorParameters: DefaultTrackSelector.Parameters? = null
     private var listener: Player.Listener? = null
+    private lateinit var videoSettings: ImageButton
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        Log.v(LOG_TAG,"OnCreate")
+        Log.v(LOG_TAG, "OnCreate")
         trackSelector = DefaultTrackSelector(this)
 
         val container: FrameLayout = findViewById(R.id.video_container)
@@ -54,14 +56,46 @@ class MainActivity : AppCompatActivity(), StyledPlayerControlView.OnFullScreenMo
             0
         )
         initializePlayer()
+        videoSettings = findViewById(R.id.video_settings)
+        videoSettings.apply {
+            isEnabled = false
+            setOnClickListener { showTrackSelectionDialog() }
+        }
+    }
+
+    override fun onVisibilityChange(visibility: Int) {
+        videoSettings.visibility = visibility
+    }
+
+    private fun showTrackSelectionDialog() {
+        if (player?.trackSelector != null && TrackSelectionDialog.willHaveContent(player?.trackSelector as? DefaultTrackSelector)) {
+            val renderIndex = getRenderIndex()
+            val dialog = TrackSelectionDialogBuilder(
+                this,
+                "Select Video Quality",
+                player?.trackSelector as DefaultTrackSelector,
+                renderIndex ?: 0
+            ).setAllowAdaptiveSelections(false).setShowDisableOption(true).setTrackNameProvider { format -> "${format.width} x ${format.height}" } .build()
+
+            dialog.show()
+        }
+    }
+
+    private fun getRenderIndex(type: Int = C.TRACK_TYPE_VIDEO): Int? {
+        val trackInfo = trackSelector?.currentMappedTrackInfo
+        val renderCount = trackInfo?.rendererCount ?: 0
+        for (renderIndex in 0 until renderCount) {
+            val trackType: Int? = trackInfo?.getRendererType(renderIndex)
+            if (trackType == type) return@getRenderIndex renderIndex
+        }
+        return null
     }
 
     private fun initializePlayer() {
 
-        Log.v(LOG_TAG,"Initialize Player")
+        Log.v(LOG_TAG, "Initialize Player")
 
         trackSelector = DefaultTrackSelector(this)
-        trackSelectorParameters = DefaultTrackSelector.ParametersBuilder(this).build()
 
         playerView?.requestLayout()
 
@@ -89,6 +123,7 @@ class MainActivity : AppCompatActivity(), StyledPlayerControlView.OnFullScreenMo
                     player = exoplayer
                     setKeepContentOnPlayerReset(true)
                     setControllerOnFullScreenModeChangedListener(this@MainActivity)
+                    setControllerOnSettingsWindowDismissListener(this@MainActivity)
                 }
 
                 exoplayer.addMediaItems(items)
@@ -101,23 +136,47 @@ class MainActivity : AppCompatActivity(), StyledPlayerControlView.OnFullScreenMo
                         super.onPlaybackStateChanged(state)
                         try {
                             if (state == Player.STATE_READY) {
+                                videoSettings.isEnabled = true
+
                                 val trackInfo = trackSelector?.currentMappedTrackInfo
-                                val count = trackInfo?.rendererCount ?: 0
-                                for (i in 0 until count) {
-                                    Log.v(LOG_TAG, "Track Array : ${trackInfo?.getTrackGroups(i)}")
-                                    val trackGroupArray: TrackGroupArray? =
-                                        trackInfo?.getTrackGroups(i)
-                                    if (trackGroupArray != null) {
-                                        for (j in 0 until trackGroupArray.length) {
+
+                                // Get all renderers : video, audio etc
+                                val renderCount = trackInfo?.rendererCount ?: 0
+
+                                // render index
+                                for (renderIndex in 0 until renderCount) {
+                                    val trackType: Int? = trackInfo?.getRendererType(renderIndex)
+                                    val isTrackSupported = isSupportedTrackType(trackType!!)
+
+                                    if (isTrackSupported) {
+
+                                        val trackName = getTrackTypeString(trackType)
+                                        Log.v(LOG_TAG, "Track Type : $trackName")
+
+                                        val trackGroupArray = trackInfo.getTrackGroups(renderIndex)
+                                        Log.v(
+                                            LOG_TAG,
+                                            "Available Tracks Groups for $trackName : ${trackGroupArray.length}"
+                                        )
+
+                                        for (groupIndex in 0 until trackGroupArray.length) {
                                             Log.v(
                                                 LOG_TAG,
-                                                "Track Group : ${trackGroupArray.get(j).length}"
+                                                "Track Group Length At $groupIndex for $trackName : ${
+                                                    trackGroupArray.get(groupIndex).length
+                                                }"
                                             )
-                                            val trackGroup = trackGroupArray.get(j)
-                                            for (k in 0 until trackGroup.length) {
-                                                Log.v(LOG_TAG, "Track : ${trackGroup.getFormat(k)}")
+                                            val trackGroup = trackGroupArray.get(groupIndex)
+                                            for (trackIndex in 0 until trackGroup.length) {
+                                                Log.v(
+                                                    LOG_TAG,
+                                                    "Track In Group $groupIndex : ${
+                                                        trackGroup.getFormat(trackIndex)
+                                                    }"
+                                                )
                                             }
                                         }
+
                                     }
 
                                 }
@@ -155,6 +214,23 @@ class MainActivity : AppCompatActivity(), StyledPlayerControlView.OnFullScreenMo
             }
     }
 
+    private fun isSupportedTrackType(trackType: Int) =
+        when (trackType) {
+            C.TRACK_TYPE_VIDEO,
+            C.TRACK_TYPE_AUDIO,
+            C.TRACK_TYPE_TEXT -> true
+            else -> false
+        }
+
+    private fun getTrackTypeString(trackType: Int): String? =
+        when (trackType) {
+            C.TRACK_TYPE_VIDEO -> "Video"
+            C.TRACK_TYPE_AUDIO -> "Audio"
+            C.TRACK_TYPE_TEXT -> "Text"
+            else -> null
+        }
+
+
     private fun releasePlayer() {
         player?.run {
             playbackPosition = this.currentPosition
@@ -169,7 +245,7 @@ class MainActivity : AppCompatActivity(), StyledPlayerControlView.OnFullScreenMo
     }
 
     override fun onStop() {
-        Log.v(LOG_TAG,"OnStop")
+        Log.v(LOG_TAG, "OnStop")
         super.onStop()
         if (Util.SDK_INT >= 24) {
             releasePlayer()
@@ -177,7 +253,7 @@ class MainActivity : AppCompatActivity(), StyledPlayerControlView.OnFullScreenMo
     }
 
     override fun onPause() {
-        Log.v(LOG_TAG,"OnPause")
+        Log.v(LOG_TAG, "OnPause")
         super.onPause()
         if (Util.SDK_INT < 24) {
             releasePlayer()
@@ -185,7 +261,7 @@ class MainActivity : AppCompatActivity(), StyledPlayerControlView.OnFullScreenMo
     }
 
     override fun onResume() {
-        Log.v(LOG_TAG,"OnResume")
+        Log.v(LOG_TAG, "OnResume")
         super.onResume()
         if ((Util.SDK_INT < 24 || player == null)) {
             initializePlayer()
@@ -193,7 +269,7 @@ class MainActivity : AppCompatActivity(), StyledPlayerControlView.OnFullScreenMo
     }
 
     override fun onStart() {
-        Log.v(LOG_TAG,"OnStart")
+        Log.v(LOG_TAG, "OnStart")
         super.onStart()
         if (Util.SDK_INT >= 24) {
             initializePlayer()
@@ -217,6 +293,13 @@ class MainActivity : AppCompatActivity(), StyledPlayerControlView.OnFullScreenMo
         }
     }
 
+    override fun onDismiss(isFullScreen: Boolean) {
+        Log.v(LOG_TAG, "Settings Window Dismissed")
+        if (isFullScreen) {
+            hideSystemUI()
+        }
+    }
+
     private fun hideSystemUI() {
         supportActionBar?.hide()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -229,6 +312,8 @@ class MainActivity : AppCompatActivity(), StyledPlayerControlView.OnFullScreenMo
             window.decorView.systemUiVisibility = (
                     View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
                             // Hide the nav bar and status bar
+                            or View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                            or View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                             or View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                             or View.SYSTEM_UI_FLAG_FULLSCREEN)
         }
