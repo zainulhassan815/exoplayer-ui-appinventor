@@ -9,7 +9,6 @@ import android.view.View
 import android.view.WindowInsets
 import android.view.WindowInsetsController
 import android.widget.FrameLayout
-import android.widget.ImageButton
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.MediaItem
@@ -77,7 +76,7 @@ class MainActivity : AppCompatActivity(), StyledPlayerControlView.OnFullScreenMo
         val renderCount = trackInfo?.rendererCount ?: 0
         for (renderIndex in 0 until renderCount) {
             val trackType: Int? = trackInfo?.getRendererType(renderIndex)
-            if (trackType == type) return@getRenderIndex renderIndex
+            if (trackType == type) return renderIndex
         }
         return null
     }
