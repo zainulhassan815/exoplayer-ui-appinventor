@@ -352,9 +352,6 @@ public final class TrackSelectionDialog extends DialogFragment {
         LayoutInflater inflater,
         @Nullable ViewGroup container,
         @Nullable Bundle savedInstanceState) {
-//      View rootView =
-//          inflater.inflate(
-//              R.layout.exo_track_selection_dialog, container, /* attachToRoot= */ false);
 
       View rootView = createSelectionDialog(getContext());
 
