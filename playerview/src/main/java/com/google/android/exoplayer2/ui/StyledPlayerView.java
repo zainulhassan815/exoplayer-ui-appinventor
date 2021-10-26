@@ -982,6 +982,16 @@ public class StyledPlayerView extends FrameLayout implements AdViewProvider {
     }
 
     /**
+     * Check current fullscreen mode.
+     *
+     * @return true if is in fullscreen else false.
+     */
+    public boolean getIsFullscreen() {
+        Assertions.checkStateNotNull(controller);
+        return controller.getIsFullscreen();
+    }
+
+    /**
      * Sets the {@link StyledPlayerControlView.OnSettingsWindowDismissListener}.
      *
      * @param listener The listener to be notified when settings window is dismissed.
