@@ -382,6 +382,8 @@ public class StyledPlayerControlView extends FrameLayout {
     private final TextView positionView;
     @Nullable
     private final TimeBar timeBar;
+    @Nullable
+    private final View videoSettingsButton;
     private final StringBuilder formatBuilder;
     private final Formatter formatter;
     private final Timeline.Period period;
@@ -498,6 +500,7 @@ public class StyledPlayerControlView extends FrameLayout {
         boolean animationEnabled = playerAttributes.getAnimationEnabled();
         debugMode = playerAttributes.isDebugMode();
         boolean showFullscreenButton = playerAttributes.getShowFullscreenButton();
+        boolean showVideoSettingsButton = playerAttributes.getShowVideoSettingsButton();
 
         // Inflate Player View Here
         // ----------- Root View ----------- //
@@ -614,11 +617,13 @@ public class StyledPlayerControlView extends FrameLayout {
         settingsButton = UiHelper.createBottomImageButton(context, UiHelper.getDrawable(context, UiHelper.IC_SETTINGS, debugMode));
         // Fullscreen Button
         fullScreenButton = UiHelper.createBottomImageButton(context, UiHelper.getDrawable(context, UiHelper.IC_FULLSCREEN_ENTER, debugMode));
-
+        // Video Settings Button
+        videoSettingsButton = UiHelper.createBottomImageButton(context,UiHelper.getDrawable(context,UiHelper.IC_VIDEO_SETTINGS, debugMode));
         // Add basic controls
         basicControls.addView(shuffleButton);
         basicControls.addView(repeatToggleButton);
         basicControls.addView(subtitleButton);
+        basicControls.addView(videoSettingsButton);
         basicControls.addView(settingsButton);
         basicControls.addView(fullScreenButton);
 
@@ -741,6 +746,7 @@ public class StyledPlayerControlView extends FrameLayout {
         controlViewLayoutManager.setShowButton(subtitleButton, showSubtitleButton);
         controlViewLayoutManager.setShowButton(repeatToggleButton, repeatToggleModes != RepeatModeUtil.REPEAT_TOGGLE_MODE_NONE);
         controlViewLayoutManager.setShowButton(fullScreenButton, showFullscreenButton);
+        controlViewLayoutManager.setShowButton(videoSettingsButton, showVideoSettingsButton);
         addOnLayoutChangeListener(this::onLayoutChange);
     }
 
@@ -966,6 +972,35 @@ public class StyledPlayerControlView extends FrameLayout {
     public void setShowNextButton(boolean showNextButton) {
         controlViewLayoutManager.setShowButton(nextButton, showNextButton);
         updateNavigation();
+    }
+
+    /**
+     * Sets whether the video settings button is shown.
+     *
+     * @param showVideoSettingsButton Whether the next button is shown.
+     */
+    public void setShowVideoSettingsButton(boolean showVideoSettingsButton) {
+        controlViewLayoutManager.setShowButton(videoSettingsButton,showVideoSettingsButton);
+        updateNavigation();
+    }
+
+    /**
+     * Returns whether the video settings button is shown.
+     */
+    public boolean getShowVideoSettingsButton() {
+        return controlViewLayoutManager.getShowButton(videoSettingsButton);
+    }
+
+    /**
+     * Sets listener for the Video Settings button.
+     *
+     * @param onClickListener Listener for the Video Settings button, or null to clear the listener.
+     */
+    public void setVideoSettingsButtonListener(@Nullable OnClickListener onClickListener) {
+        if (videoSettingsButton != null) {
+            videoSettingsButton.setOnClickListener(onClickListener);
+            updateButton(onClickListener != null, videoSettingsButton);
+        }
     }
 
     /**
@@ -1348,6 +1383,7 @@ public class StyledPlayerControlView extends FrameLayout {
     private void updateTrackLists() {
         initTrackSelectionAdapter();
         updateButton(textTrackSelectionAdapter.getItemCount() > 0, subtitleButton);
+        updateButton(textTrackSelectionAdapter.getItemCount() > 0, videoSettingsButton);
     }
 
     private void initTrackSelectionAdapter() {

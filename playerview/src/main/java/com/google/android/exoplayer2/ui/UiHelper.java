@@ -35,6 +35,7 @@ public class UiHelper {
     public static final String IC_SUBTITLE_ON = "ic_subtitle_on.png";
     public static final String IC_SUBTITLE_OFF = "ic_subtitle_off.png";
     public static final String IC_SETTINGS = "ic_settings.png";
+    public static final String IC_VIDEO_SETTINGS = "ic_video_settings.png";
     public static final String IC_SPEED = "ic_speed.png";
     public static final String IC_AUDIO_TRACK = "ic_audio_track.png";
     public static final String IC_FULLSCREEN_ENTER = "ic_fullscreen_enter.png";

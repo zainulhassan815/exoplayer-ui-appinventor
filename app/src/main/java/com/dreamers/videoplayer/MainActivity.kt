@@ -24,8 +24,7 @@ import com.google.android.exoplayer2.ui.TrackSelectionDialogBuilder
 import com.google.android.exoplayer2.util.MimeTypes
 import com.google.android.exoplayer2.util.Util
 
-class MainActivity : AppCompatActivity(), StyledPlayerControlView.OnFullScreenModeChangedListener,
-    StyledPlayerControlView.VisibilityListener, StyledPlayerControlView.OnSettingsWindowDismissListener {
+class MainActivity : AppCompatActivity(), StyledPlayerControlView.OnFullScreenModeChangedListener, StyledPlayerControlView.OnSettingsWindowDismissListener {
 
     private var playerView: StyledPlayerView? = null
     private var videoUrl =
@@ -40,7 +39,6 @@ class MainActivity : AppCompatActivity(), StyledPlayerControlView.OnFullScreenMo
     private var shouldPlayWhenReady = false
     private var trackSelector: DefaultTrackSelector? = null
     private var listener: Player.Listener? = null
-    private lateinit var videoSettings: ImageButton
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,21 +48,14 @@ class MainActivity : AppCompatActivity(), StyledPlayerControlView.OnFullScreenMo
 
         val container: FrameLayout = findViewById(R.id.video_container)
         playerView = StyledPlayerView(this)
+        playerView?.setShowVideoSettingsButton(true)
+        playerView?.setVideoSettingsButtonListener { showTrackSelectionDialog() }
 
         container.addView(
             playerView,
             0
         )
         initializePlayer()
-        videoSettings = findViewById(R.id.video_settings)
-        videoSettings.apply {
-            isEnabled = false
-            setOnClickListener { showTrackSelectionDialog() }
-        }
-    }
-
-    override fun onVisibilityChange(visibility: Int) {
-        videoSettings.visibility = visibility
     }
 
     private fun showTrackSelectionDialog() {
@@ -136,7 +127,6 @@ class MainActivity : AppCompatActivity(), StyledPlayerControlView.OnFullScreenMo
                         super.onPlaybackStateChanged(state)
                         try {
                             if (state == Player.STATE_READY) {
-                                videoSettings.isEnabled = true
 
                                 val trackInfo = trackSelector?.currentMappedTrackInfo
 

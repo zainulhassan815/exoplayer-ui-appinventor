@@ -1059,6 +1059,26 @@ public class StyledPlayerView extends FrameLayout implements AdViewProvider {
     }
 
     /**
+     * Sets whether the video settings button is shown.
+     *
+     * @param showVideoSettingsButton Whether the next button is shown.
+     */
+    public void setShowVideoSettingsButton(boolean showVideoSettingsButton) {
+        Assertions.checkStateNotNull(controller);
+        controller.setShowVideoSettingsButton(showVideoSettingsButton);
+    }
+
+    /**
+     * Sets listener for the Video Settings button.
+     *
+     * @param onClickListener Listener for the Video Settings button, or null to clear the listener.
+     */
+    public void setVideoSettingsButtonListener(@Nullable OnClickListener onClickListener) {
+        Assertions.checkStateNotNull(controller);
+        controller.setVideoSettingsButtonListener(onClickListener);
+    }
+
+    /**
      * Sets which repeat toggle modes are enabled.
      *
      * @param repeatToggleModes A set of {@link RepeatModeUtil.RepeatToggleModes}.

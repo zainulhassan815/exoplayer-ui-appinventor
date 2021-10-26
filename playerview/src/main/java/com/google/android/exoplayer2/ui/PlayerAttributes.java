@@ -29,9 +29,10 @@ public class PlayerAttributes {
     private final boolean showShuffleButton;
     private final boolean showSubtitleButton;
     private final boolean showFullscreenButton;
+    private final boolean showVideoSettingsButton;
     private final boolean animationEnabled;
 
-    public PlayerAttributes(int surfaceType,boolean useArtWork, int resizeMode, int controllerTimeout, boolean hideOnTouch, boolean autoShowController, int showBuffering, boolean useController, boolean hideDuringAds, boolean isDebugMode, int rewindMs, int fastForwardMs, int repeatToggleModes, boolean showRewindButton, boolean showFastForwardButton, boolean showPreviousButton, boolean showNextButton, boolean showShuffleButton, boolean showSubtitleButton, boolean showFullscreenButton, boolean animationEnabled) {
+    public PlayerAttributes(int surfaceType,boolean useArtWork, int resizeMode, int controllerTimeout, boolean hideOnTouch, boolean autoShowController, int showBuffering, boolean useController, boolean hideDuringAds, boolean isDebugMode, int rewindMs, int fastForwardMs, int repeatToggleModes, boolean showRewindButton, boolean showFastForwardButton, boolean showPreviousButton, boolean showNextButton, boolean showShuffleButton, boolean showSubtitleButton, boolean showFullscreenButton,boolean showVideoSettingsButton, boolean animationEnabled) {
         this.surfaceType = surfaceType;
         this.useArtWork = useArtWork;
         this.resizeMode = resizeMode;
@@ -52,6 +53,7 @@ public class PlayerAttributes {
         this.showShuffleButton = showShuffleButton;
         this.showSubtitleButton = showSubtitleButton;
         this.showFullscreenButton = showFullscreenButton;
+        this.showVideoSettingsButton = showVideoSettingsButton;
         this.animationEnabled = animationEnabled;
     }
 
@@ -77,6 +79,7 @@ public class PlayerAttributes {
                 /* showShuffleButton */false,
                 /* showSubtitleButton */true,
                 /* showFullscreenButton */false,
+                /* showVideoSettingsButton */ false,
                 /* animationEnabled */true
         );
     }
@@ -174,4 +177,6 @@ public class PlayerAttributes {
     }
 
     public boolean getShowFullscreenButton() { return showFullscreenButton; }
+
+    public boolean getShowVideoSettingsButton() { return showVideoSettingsButton; }
 }
