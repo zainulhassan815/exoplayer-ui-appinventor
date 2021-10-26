@@ -84,7 +84,7 @@ public class UiHelper {
                         path = "/storage/emulated/0/Kodular/assets/" + file;
                     }
                 } else {
-                    path = context.getExternalFilesDir(null).toString() + "/AppInventor/assets/" + file;
+                    path = context.getExternalFilesDir(null).toString() + "/assets/" + file;
                 }
                 Log.v(LOG_TAG, "getAsset | Filepath = " + path);
                 return new FileInputStream(path);
