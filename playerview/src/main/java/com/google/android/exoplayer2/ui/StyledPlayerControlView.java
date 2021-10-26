@@ -618,7 +618,7 @@ public class StyledPlayerControlView extends FrameLayout {
         // Fullscreen Button
         fullScreenButton = UiHelper.createBottomImageButton(context, UiHelper.getDrawable(context, UiHelper.IC_FULLSCREEN_ENTER, debugMode));
         // Video Settings Button
-        videoSettingsButton = UiHelper.createBottomImageButton(context,UiHelper.getDrawable(context,UiHelper.IC_VIDEO_SETTINGS, debugMode));
+        videoSettingsButton = UiHelper.createBottomImageButton(context, UiHelper.getDrawable(context, UiHelper.IC_VIDEO_SETTINGS, debugMode));
         // Add basic controls
         basicControls.addView(shuffleButton);
         basicControls.addView(repeatToggleButton);
@@ -980,7 +980,7 @@ public class StyledPlayerControlView extends FrameLayout {
      * @param showVideoSettingsButton Whether the next button is shown.
      */
     public void setShowVideoSettingsButton(boolean showVideoSettingsButton) {
-        controlViewLayoutManager.setShowButton(videoSettingsButton,showVideoSettingsButton);
+        controlViewLayoutManager.setShowButton(videoSettingsButton, showVideoSettingsButton);
         updateNavigation();
     }
 
@@ -1168,6 +1168,15 @@ public class StyledPlayerControlView extends FrameLayout {
         onFullScreenModeChangedListener = listener;
         updateFullScreenButtonVisibility(fullScreenButton, listener != null);
         updateFullScreenButtonVisibility(minimalFullScreenButton, listener != null);
+    }
+
+    /**
+     * Check current fullscreen mode.
+     *
+     * @return true if is in fullscreen else false.
+     */
+    public boolean getIsFullscreen() {
+        return isFullScreen;
     }
 
     /**
