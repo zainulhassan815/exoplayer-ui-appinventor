@@ -83,6 +83,12 @@ public class UiHelper {
                     } else {
                         path = "/storage/emulated/0/Kodular/assets/" + file;
                     }
+                } else if (context.getClass().getName().contains("appinventor")) {
+                    if (Build.VERSION.SDK_INT >= 29) {
+                        path = context.getExternalFilesDir(null).toString() + "/assets/" + file;
+                    } else {
+                        path = context.getExternalFilesDir(null).toString() + "/AppInventor/assets/" + file;
+                    }
                 } else {
                     path = context.getExternalFilesDir(null).toString() + "/assets/" + file;
                 }
