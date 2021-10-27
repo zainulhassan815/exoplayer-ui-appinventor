@@ -2374,8 +2374,10 @@ public class StyledPlayerControlView extends FrameLayout {
                 for (int i = 0; i < trackInfo.size(); i++) {
                     TrackInfo track = trackInfo.get(i);
                     if (track.selected) {
+                        // Remove `ItemList : ` and `Item : ` from trackName
+                        String trackName = track.trackName.replaceAll("(ItemList : )|(Item : )", "");
                         settingsAdapter.setSubTextAtPosition(
-                                SETTINGS_AUDIO_TRACK_SELECTION_POSITION, track.trackName);
+                                SETTINGS_AUDIO_TRACK_SELECTION_POSITION, trackName);
                         break;
                     }
                 }
