@@ -1392,7 +1392,6 @@ public class StyledPlayerControlView extends FrameLayout {
     private void updateTrackLists() {
         initTrackSelectionAdapter();
         updateButton(textTrackSelectionAdapter.getItemCount() > 0, subtitleButton);
-        updateButton(textTrackSelectionAdapter.getItemCount() > 0, videoSettingsButton);
     }
 
     private void initTrackSelectionAdapter() {
