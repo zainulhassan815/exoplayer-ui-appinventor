@@ -20,7 +20,6 @@ import static com.google.android.exoplayer2.Player.COMMAND_SET_VIDEO_SURFACE;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -29,10 +28,7 @@ import android.graphics.RectF;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.opengl.GLSurfaceView;
-import android.os.Build;
 import android.os.Looper;
-import android.util.DisplayMetrics;
-import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -42,7 +38,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.IntDef;
@@ -309,7 +304,6 @@ public class PlayerView extends FrameLayout implements AdViewProvider {
     private final FrameLayout adOverlayFrameLayout;
     @Nullable
     private final FrameLayout overlayFrameLayout;
-    private final boolean debugMode;
     @Nullable
     private Player player;
     private boolean useController;
@@ -332,17 +326,16 @@ public class PlayerView extends FrameLayout implements AdViewProvider {
     private boolean isTouching;
 
     public PlayerView(Context context) {
-        this(context, TimeBarAttributes.createDefault());
+        this(context, new PlayerStyle());
     }
 
-    public PlayerView(Context context, TimeBarAttributes timeBarAttributes) {
-        this(context, timeBarAttributes, PlayerAttributes.createDefault());
+    public PlayerView(Context context, PlayerStyle playerStyle) {
+        this(context, playerStyle, new ProgressBarStyle());
     }
 
-    // Custom constructor
-    public PlayerView(Context context, TimeBarAttributes timeBarAttributes, PlayerAttributes playerAttributes) {
-
+    public PlayerView(Context context, PlayerStyle playerStyle, ProgressBarStyle timeBarStyle) {
         super(context, null, 0);
+
         setBackgroundColor(Color.BLACK);
         setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
 
@@ -360,77 +353,34 @@ public class PlayerView extends FrameLayout implements AdViewProvider {
             controller = null;
             adOverlayFrameLayout = null;
             overlayFrameLayout = null;
-            debugMode = false;
             ImageView logo = new ImageView(context);
             addView(logo);
             return;
         }
 
-        // Get properties from player view playerAttributes class
+        boolean useArtwork = playerStyle.getUseArtWork();
+        boolean useController = playerStyle.getUseController();
+        int surfaceType = playerStyle.getSurfaceType();
+        int resizeMode = playerStyle.getResizeMode();
+        int controllerShowTimeoutMs = playerStyle.getControlsTimeoutMs();
+        boolean controllerHideOnTouch = playerStyle.getHideOnTouch();
+        boolean controllerAutoShow = playerStyle.getAutoShowController();
+        boolean controllerHideDuringAds = playerStyle.getHideDuringAds();
+        int showBuffering = playerStyle.getShowBuffering();
 
-        int shutterColor = Color.BLACK;
-        boolean useArtwork = playerAttributes.getUseArtWork();
-        boolean useController = playerAttributes.getUseController();
-        int surfaceType = playerAttributes.getSurfaceType();
-        int resizeMode = playerAttributes.getResizeMode();
-        int controllerShowTimeoutMs = playerAttributes.getControllerTimeout();
-        boolean controllerHideOnTouch = playerAttributes.getHideOnTouch();
-        boolean controllerAutoShow = playerAttributes.getAutoShowController();
-        boolean controllerHideDuringAds = playerAttributes.getHideDuringAds();
-        int showBuffering = playerAttributes.getShowBuffering();
-        debugMode = playerAttributes.isDebugMode();
-
-        int whiteWithAlpha7 = Color.parseColor("#B3ffffff");
-        int errorMessageBg = Color.parseColor("#AA000000");
-
-
-        // Create an aspect ratio layout as content frame
-        contentFrame = new AspectRatioFrameLayout(context);
-        contentFrame.setLayoutParams(centeredParams());
-
-        // Shutter View
-        shutterView = new View(context);
-        shutterView.setLayoutParams(defaultParams());
-
-        // ArtWork view (Thumbnail Image)
-        artworkView = new ImageView(context);
-        artworkView.setLayoutParams(centeredParams());
-        artworkView.setScaleType(ImageView.ScaleType.FIT_XY);
-
-        // Subtitle view
-        subtitleView = new SubtitleView(context);
-        subtitleView.setLayoutParams(defaultParams());
-
-        // Buffering view (Circular Progress)
-        bufferingView = new ProgressBar(context);
-        bufferingView.setLayoutParams(new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT, Gravity.CENTER));
-        ((ProgressBar) bufferingView).setIndeterminate(true);
-        ((ProgressBar) bufferingView).setIndeterminateTintList(ColorStateList.valueOf(whiteWithAlpha7));
-
-        // Error Message View (Textview)
-        errorMessageView = new TextView(context);
-        errorMessageView.setLayoutParams(centeredParams());
-        int padding = UiHelper.convertToDp(16f);
-        errorMessageView.setPadding(padding, padding, padding, padding);
-        errorMessageView.setBackgroundColor(errorMessageBg);
-
-        // Add items to content frame (AspectRatioFrameLayout)
-        contentFrame.addView(shutterView);
-        contentFrame.addView(artworkView);
-        contentFrame.addView(subtitleView);
-        contentFrame.addView(bufferingView);
-        contentFrame.addView(errorMessageView);
-
-        // Add UI Elements to root view
-        addView(contentFrame);
+        PlayerUiKt.simplePlayer(this, playerStyle, timeBarStyle);
+        contentFrame = findViewById(R.id.exo_content_frame);
+        shutterView = findViewById(R.id.exo_shutter);
+        artworkView = findViewById(R.id.exo_artwork);
+        subtitleView = findViewById(R.id.exo_subtitles);
+        bufferingView = findViewById(R.id.exo_buffering);
+        errorMessageView = findViewById(R.id.exo_error_message);
+        adOverlayFrameLayout = findViewById(R.id.exo_ad_overlay);
+        overlayFrameLayout = findViewById(R.id.exo_overlay);
+        controller = findViewById(R.id.exo_controller);
 
         setDescendantFocusability(FOCUS_AFTER_DESCENDANTS);
-
-        // Content frame.
         setResizeModeRaw(contentFrame, resizeMode);
-
-        // Shutter view.
-        shutterView.setBackgroundColor(shutterColor);
 
         // Create a surface view and insert it into the content frame, if there is one.
         boolean surfaceViewIgnoresVideoAspectRatio = false;
@@ -465,32 +415,8 @@ public class PlayerView extends FrameLayout implements AdViewProvider {
         }
         this.surfaceViewIgnoresVideoAspectRatio = surfaceViewIgnoresVideoAspectRatio;
 
-        // Ad overlay frame layout.
-        adOverlayFrameLayout = new FrameLayout(context);
-        adOverlayFrameLayout.setLayoutParams(defaultParams());
-
-        // Overlay frame layout.
-        overlayFrameLayout = new FrameLayout(context);
-        overlayFrameLayout.setLayoutParams(defaultParams());
-
-        // Artwork view.
         this.useArtwork = useArtwork;
-
-        // Subtitle view.
-        subtitleView.setUserDefaultStyle();
-        subtitleView.setUserDefaultTextSize();
-
-        // Buffering view.
-        bufferingView.setVisibility(View.GONE);
         this.showBuffering = showBuffering;
-
-        // Error message view.
-        errorMessageView.setVisibility(View.GONE);
-
-        // Player Controls View
-        controller = new PlayerControlView(context, timeBarAttributes, playerAttributes);
-        controller.setLayoutParams(defaultParams());
-
         this.controllerShowTimeoutMs = controllerShowTimeoutMs;
         this.controllerHideOnTouch = controllerHideOnTouch;
         this.controllerAutoShow = controllerAutoShow;
@@ -498,10 +424,7 @@ public class PlayerView extends FrameLayout implements AdViewProvider {
         this.useController = useController;
         hideController();
         updateContentDescription();
-        controller.addVisibilityListener(/* listener= */ componentListener);
-
-        // Add Controls View to root view
-        addView(controller);
+        controller.addVisibilityListener(componentListener);
     }
 
     /**

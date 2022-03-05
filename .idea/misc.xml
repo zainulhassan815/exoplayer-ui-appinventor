@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DesignSurface">
+    <option name="filePathToZoomLevelMap">
+      <map>
+        <entry key="..\:/Users/DreamersLab/AndroidStudioProjects/exoplayer-ui-appinventor/app/src/main/res/drawable/circle.xml" value="0.138" />
+        <entry key="..\:/Users/DreamersLab/AndroidStudioProjects/exoplayer-ui-appinventor/app/src/main/res/layout/activity_main.xml" value="0.3569230769230769" />
+        <entry key="..\:/Users/DreamersLab/AndroidStudioProjects/exoplayer-ui-appinventor/app/src/main/res/layout/activity_play_list.xml" value="0.3569230769230769" />
+      </map>
+    </option>
+  </component>
+  <component name="ExternalStorageConfigurationManager" enabled="true" />
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="true" project-jdk-name="11" project-jdk-type="JavaSDK" />
+</project>

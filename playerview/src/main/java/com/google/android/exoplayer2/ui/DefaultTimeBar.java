@@ -258,13 +258,12 @@ public class DefaultTimeBar extends View implements TimeBar {
     private boolean[] playedAdGroups;
 
     public DefaultTimeBar(Context context) {
-        this(context, TimeBarAttributes.createDefault());
+        this(context, new ProgressBarStyle());
     }
 
     // Suppress warnings due to usage of View methods in the constructor.
     @SuppressWarnings("nullness:method.invocation.invalid")
-    public DefaultTimeBar(
-            Context context, TimeBarAttributes attributes) {
+    public DefaultTimeBar(Context context, ProgressBarStyle style) {
         super(context, null, 0);
         seekBounds = new Rect();
         progressBar = new Rect();
@@ -287,29 +286,29 @@ public class DefaultTimeBar extends View implements TimeBar {
         fineScrubYThreshold = dpToPx(density, FINE_SCRUB_Y_THRESHOLD_DP);
 //        int defaultTouchTargetHeight = dpToPx(density, DEFAULT_TOUCH_TARGET_HEIGHT_DP);
 
-        scrubberDrawable = attributes.getScrubberDrawable();
+        scrubberDrawable = style.getScrubberDrawable();
         if (scrubberDrawable != null) {
             setDrawableLayoutDirection(scrubberDrawable);
         }
-        barHeight = dpToPx(density, attributes.getBarHeight());
-        touchTargetHeight = dpToPx(density, attributes.getTouchTargetHeight());
-        adMarkerWidth = dpToPx(density, attributes.getAdMarkerWidth());
-        scrubberEnabledSize = dpToPx(density, attributes.getScrubberEnabledSize());
-        scrubberDisabledSize = dpToPx(density, attributes.getScrubberDisabledSize());
-        scrubberDraggedSize = dpToPx(density, attributes.getScrubberDraggedSize());
-        barGravity = attributes.getBarGravity();
+        barHeight = dpToPx(density, style.getBarHeight());
+        touchTargetHeight = dpToPx(density, style.getTouchTargetHeight());
+        adMarkerWidth = dpToPx(density, style.getAdMarkerWidth());
+        scrubberEnabledSize = dpToPx(density, style.getScrubberEnabledSize());
+        scrubberDisabledSize = dpToPx(density, style.getScrubberDisabledSize());
+        scrubberDraggedSize = dpToPx(density, style.getScrubberDraggedSize());
+        barGravity = style.getBarGravity();
 
-        int playedColor = attributes.getPlayedColor();
-        int scrubberColor = attributes.getScrubberColor();
-        int bufferedColor = attributes.getBufferedColor();
-        int unplayedColor = attributes.getUnplayedColor();
-        int adMarkerColor = attributes.getAdMarkerColor();
-        int playedAdMarkerColor = attributes.getPlayedAdMarkerColor();
+        int playedColor = style.getPlayedColor();
+        int scrubberColor = style.getScrubberColor();
+        int bufferedColor = style.getBufferedColor();
+        int unPlayedColor = style.getUnPlayedColor();
+        int adMarkerColor = style.getAdMarkerColor();
+        int playedAdMarkerColor = style.getPlayedAdMarkerColor();
 
         playedPaint.setColor(playedColor);
         scrubberPaint.setColor(scrubberColor);
         bufferedPaint.setColor(bufferedColor);
-        unplayedPaint.setColor(unplayedColor);
+        unplayedPaint.setColor(unPlayedColor);
         adMarkerPaint.setColor(adMarkerColor);
         playedAdMarkerPaint.setColor(playedAdMarkerColor);
 

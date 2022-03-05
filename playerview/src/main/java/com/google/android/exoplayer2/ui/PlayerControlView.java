@@ -28,26 +28,14 @@ import static com.google.android.exoplayer2.Player.EVENT_TIMELINE_CHANGED;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.res.Resources;
-import android.graphics.Color;
-import android.graphics.Typeface;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.GradientDrawable;
-import android.os.Build;
 import android.os.Looper;
 import android.os.SystemClock;
-import android.util.DisplayMetrics;
-import android.util.Log;
-import android.util.TypedValue;
-import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.FrameLayout;
-import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
@@ -65,10 +53,9 @@ import com.google.android.exoplayer2.util.Assertions;
 import com.google.android.exoplayer2.util.RepeatModeUtil;
 import com.google.android.exoplayer2.util.Util;
 
-import java.io.FileInputStream;
-import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Formatter;
+import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -273,8 +260,7 @@ public class PlayerControlView extends FrameLayout {
      * The default repeat toggle modes.
      */
     public static final @RepeatModeUtil.RepeatToggleModes
-    int DEFAULT_REPEAT_TOGGLE_MODES =
-            RepeatModeUtil.REPEAT_TOGGLE_MODE_NONE;
+    int DEFAULT_REPEAT_TOGGLE_MODES = RepeatModeUtil.REPEAT_TOGGLE_MODE_NONE;
     /**
      * The default minimum interval between time bar position updates.
      */
@@ -287,18 +273,6 @@ public class PlayerControlView extends FrameLayout {
      * The maximum interval between time bar position updates.
      */
     private static final int MAX_UPDATE_INTERVAL_MS = 1000;
-    private static final String IC_PLAY = "ic_play.png";
-    private static final String IC_PAUSE = "ic_pause.png";
-    private static final String IC_NEXT = "ic_next.png";
-    private static final String IC_PREVIOUS = "ic_previous.png";
-    private static final String IC_FAST_FORWARD = "ic_fast_forward.png";
-    private static final String IC_REWIND = "ic_rewind.png";
-    private static final String IC_REPEAT_OFF = "ic_repeat_off.png";
-    private static final String IC_REPEAT_ONE = "ic_repeat_one.png";
-    private static final String IC_REPEAT_ALL = "ic_repeat_all.png";
-    private static final String IC_SHUFFLE_ON = "ic_shuffle_on.png";
-    private static final String IC_SHUFFLE_OFF = "ic_shuffle_off.png";
-    private static final String LOG_TAG = "ExoplayerUi";
 
     static {
         ExoPlayerLibraryInfo.registerModule("goog.exo.ui");
@@ -323,7 +297,7 @@ public class PlayerControlView extends FrameLayout {
     @Nullable
     private final ImageView shuffleButton;
     @Nullable
-    private final View vrButton = null;
+    private final View vrButton;
     @Nullable
     private final TextView durationView;
     @Nullable
@@ -373,28 +347,47 @@ public class PlayerControlView extends FrameLayout {
     private long currentWindowOffset;
 
     public PlayerControlView(Context context) {
-        this(context, /* attrs= */ TimeBarAttributes.createDefault());
+        this(context, new PlayerStyle());
     }
 
-    public PlayerControlView(Context context, TimeBarAttributes timeBarAttributes) {
-        this(context,timeBarAttributes,PlayerAttributes.createDefault());
+    public PlayerControlView(Context context, PlayerStyle playerStyle) {
+        this(context, playerStyle, new ProgressBarStyle());
     }
 
-    public PlayerControlView(Context context, TimeBarAttributes timeBarAttributes, PlayerAttributes attributes) {
+    public PlayerControlView(Context context, PlayerStyle playerStyle, ProgressBarStyle progressBarStyle) {
         super(context, null, 0);
 
-        showTimeoutMs = attributes.getShowTimeoutMs();
-        repeatToggleModes = attributes.getRepeatToggleModes();
-        timeBarMinUpdateIntervalMs = attributes.getTimeBarMinUpdateIntervalMs();
-        hideAtMs = attributes.getHideAtMs();
-        showRewindButton = attributes.getShowRewindButton();
-        showFastForwardButton = attributes.getShowFastForwardButton();
-        showPreviousButton = attributes.getShowPreviousButton();
-        showNextButton = attributes.getShowNextButton();
-        showShuffleButton = attributes.getShowShuffleButton();
-        int rewindMs = attributes.getRewindMs();
-        int fastForwardMs = attributes.getFastForwardMs();
-        boolean debugMode = attributes.isDebugMode();
+        showTimeoutMs = playerStyle.getControlsTimeoutMs();
+        repeatToggleModes = playerStyle.getRepeatToggleModes();
+        timeBarMinUpdateIntervalMs = playerStyle.getTimeBarMinUpdateIntervalMs();
+        hideAtMs = playerStyle.getHideAtMs();
+        showRewindButton = playerStyle.getShowRewindButton();
+        showFastForwardButton = playerStyle.getShowFastForwardButton();
+        showPreviousButton = playerStyle.getShowPreviousButton();
+        showNextButton = playerStyle.getShowNextButton();
+        showShuffleButton = playerStyle.getShowShuffleButton();
+        int rewindMs = playerStyle.getRewindMs();
+        int fastForwardMs = playerStyle.getFastForwardMs();
+        boolean debugMode = playerStyle.isDebugMode();
+
+        final List<MediaButton> buttons = PlayerUiKt.playerViewButtons(context, debugMode);
+        PlayerUiKt.simpleControls(this, progressBarStyle, buttons);
+
+        playButton = findViewById(R.id.exo_play);
+        pauseButton = findViewById(R.id.exo_pause);
+        rewindButton = findViewById(R.id.exo_rew);
+        fastForwardButton = findViewById(R.id.exo_ffwd);
+        nextButton = findViewById(R.id.exo_next);
+        previousButton = findViewById(R.id.exo_prev);
+        repeatToggleButton = findViewById(R.id.exo_repeat_toggle);
+        shuffleButton = findViewById(R.id.exo_shuffle);
+        positionView = findViewById(R.id.exo_position);
+        durationView = findViewById(R.id.exo_duration);
+        timeBar = findViewById(R.id.exo_time);
+        vrButton = findViewById(R.id.exo_vr);
+
+        setShowVrButton(false);
+        updateButton(false, false, vrButton);
 
         visibilityListeners = new CopyOnWriteArrayList<>();
         period = new Timeline.Period();
@@ -410,93 +403,6 @@ public class PlayerControlView extends FrameLayout {
         updateProgressAction = this::updateProgress;
         hideAction = this::hide;
 
-        // Inflate UI here
-        int padding = UiHelper.convertToDp(6f);
-        GradientDrawable gradient = new GradientDrawable(GradientDrawable.Orientation.BOTTOM_TOP, new int[]{Color.BLACK, Color.TRANSPARENT});
-
-        // Create a parent Linear Layout to hold other views and place it at bottom
-        LinearLayout rootView = new LinearLayout(context);
-        rootView.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT, Gravity.BOTTOM));
-        rootView.setLayoutDirection(LAYOUT_DIRECTION_LTR);
-        rootView.setOrientation(LinearLayout.VERTICAL);
-        rootView.setBackground(gradient);
-        rootView.setPadding(0,padding,0,padding);
-
-        // Create a linear layout to hold video controls
-        LinearLayout controlsContainer = new LinearLayout(context);
-        controlsContainer.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-        controlsContainer.setPadding(0, padding, 0, padding);
-        controlsContainer.setOrientation(LinearLayout.HORIZONTAL);
-        controlsContainer.setGravity(Gravity.CENTER);
-
-        // Play Btn
-        playButton = UiHelper.createCenterImageButton(context, UiHelper.getDrawable(context, UiHelper.IC_PLAY, debugMode));
-        // Pause Btn
-        pauseButton = UiHelper.createCenterImageButton(context, UiHelper.getDrawable(context, UiHelper.IC_PAUSE, debugMode));
-        // Rewind Btn
-        rewindButton = UiHelper.createCenterImageButton(context, UiHelper.getDrawable(context, UiHelper.IC_REWIND, debugMode));
-        // Fast forward button
-        fastForwardButton = UiHelper.createCenterImageButton(context, UiHelper.getDrawable(context, UiHelper.IC_FAST_FORWARD, debugMode));
-        // Next Button
-        nextButton = UiHelper.createCenterImageButton(context, UiHelper.getDrawable(context, UiHelper.IC_NEXT, debugMode));
-        // Previous Button
-        previousButton = UiHelper.createCenterImageButton(context, UiHelper.getDrawable(context, UiHelper.IC_PREVIOUS, debugMode));
-        // Repeat Toggle Button
-        repeatToggleButton = UiHelper.createCenterImageButton(context, UiHelper.getDrawable(context, UiHelper.IC_REPEAT_OFF, debugMode));
-        // Shuffle Button
-        shuffleButton = UiHelper.createCenterImageButton(context, UiHelper.getDrawable(context, UiHelper.IC_SHUFFLE_OFF, debugMode));
-
-        // Add buttons to controls container
-        controlsContainer.addView(previousButton);
-        controlsContainer.addView(repeatToggleButton);
-        controlsContainer.addView(rewindButton);
-        controlsContainer.addView(playButton);
-        controlsContainer.addView(pauseButton);
-        controlsContainer.addView(fastForwardButton);
-        controlsContainer.addView(shuffleButton);
-        controlsContainer.addView(nextButton);
-
-        // Video details container
-        LinearLayout videoDetailsContainer = new LinearLayout(context);
-        videoDetailsContainer.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-        videoDetailsContainer.setGravity(Gravity.CENTER);
-        videoDetailsContainer.setOrientation(LinearLayout.HORIZONTAL);
-        videoDetailsContainer.setPadding(0, padding, 0, padding);
-
-        // Current Position
-        positionView = new TextView(context);
-        positionView.setTextColor(UiHelper.DIM_WHITE);
-        positionView.setPadding(padding, 0, padding, 0);
-        positionView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
-        positionView.setText(UiHelper.INITIAL_DURATION);
-        positionView.setTypeface(positionView.getTypeface(), Typeface.BOLD);
-        positionView.setIncludeFontPadding(false);
-        positionView.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-
-        // Duration Label
-        durationView = new TextView(context);
-        durationView.setTextColor(UiHelper.DIM_WHITE);
-        durationView.setPadding(padding, 0, padding, 0);
-        durationView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
-        durationView.setText(UiHelper.INITIAL_DURATION);
-        durationView.setTypeface(durationView.getTypeface(), Typeface.BOLD);
-        durationView.setIncludeFontPadding(false);
-        durationView.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-
-        // Time bar
-        DefaultTimeBar defaultTimeBar = new DefaultTimeBar(context,timeBarAttributes);
-        defaultTimeBar.setLayoutParams(new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1));
-        timeBar = defaultTimeBar;
-
-        // Add items to video details view
-        videoDetailsContainer.addView(positionView);
-        videoDetailsContainer.addView(defaultTimeBar);
-        videoDetailsContainer.addView(durationView);
-
-        // Add controls container and description container to root view
-        rootView.addView(controlsContainer);
-        rootView.addView(videoDetailsContainer);
-
         setDescendantFocusability(FOCUS_AFTER_DESCENDANTS);
 
         timeBar.addListener(componentListener);
@@ -509,13 +415,12 @@ public class PlayerControlView extends FrameLayout {
         shuffleButton.setOnClickListener(componentListener);
         repeatToggleButton.setOnClickListener(componentListener);
 
-        repeatOffButtonDrawable = UiHelper.getDrawable(context, UiHelper.IC_REPEAT_OFF, debugMode);
-        repeatOneButtonDrawable = UiHelper.getDrawable(context, UiHelper.IC_REPEAT_ONE, debugMode);
-        repeatAllButtonDrawable = UiHelper.getDrawable(context, UiHelper.IC_REPEAT_ALL, debugMode);
-        shuffleOnButtonDrawable = UiHelper.getDrawable(context, UiHelper.IC_SHUFFLE_ON, debugMode);
-        shuffleOffButtonDrawable = UiHelper.getDrawable(context, UiHelper.IC_SHUFFLE_OFF, debugMode);
+        repeatOffButtonDrawable = UtilKt.getIcon(context, R.string.exo_controls_repeat_off, debugMode);
+        repeatOneButtonDrawable = UtilKt.getIcon(context, R.string.exo_controls_repeat_one, debugMode);
+        repeatAllButtonDrawable = UtilKt.getIcon(context, R.string.exo_controls_repeat_all, debugMode);
+        shuffleOnButtonDrawable = UtilKt.getIcon(context, R.string.exo_controls_shuffle_on, debugMode);
+        shuffleOffButtonDrawable = UtilKt.getIcon(context, R.string.exo_controls_shuffle_off, debugMode);
 
-        addView(rootView);
     }
 
     @SuppressLint("InlinedApi")
@@ -549,15 +454,6 @@ public class PlayerControlView extends FrameLayout {
         }
         return true;
     }
-
-//    private ImageButton createImageButton(Context context, Drawable drawable) {
-//        ImageButton button = new ImageButton(context);
-//        button.setLayoutParams(new ViewGroup.LayoutParams(convertToDp(50), convertToDp(50)));
-//        button.setImageDrawable(drawable);
-//        button.setBackgroundColor(Color.parseColor("#00000000"));
-//        button.setScaleType(ImageView.ScaleType.FIT_CENTER);
-//        return button;
-//    }
 
     /**
      * Returns the {@link Player} currently being controlled by this view, or null if no player is
@@ -1185,7 +1081,7 @@ public class PlayerControlView extends FrameLayout {
             return;
         }
         view.setEnabled(enabled);
-        view.setAlpha(enabled ? UiHelper.BUTTON_ENABLED_ALPHA : UiHelper.BUTTON_DISABLED_ALPHA);
+        view.setAlpha(enabled ? UiConstants.BUTTON_ENABLED_ALPHA : UiConstants.BUTTON_DISABLED_ALPHA);
         view.setVisibility(visible ? VISIBLE : GONE);
     }
 
@@ -1366,12 +1262,6 @@ public class PlayerControlView extends FrameLayout {
         void onProgressUpdate(long position, long bufferedPosition);
     }
 
-//    @SuppressWarnings("ResourceType")
-//    private static @RepeatModeUtil.RepeatToggleModes
-//    int getRepeatToggleModes(
-//            TypedArray a, @RepeatModeUtil.RepeatToggleModes int defaultValue) {
-//        return a.getInt(R.styleable.PlayerControlView_repeat_toggle_modes, defaultValue);
-//    }
 
     private final class ComponentListener
             implements Player.Listener, TimeBar.OnScrubListener, OnClickListener {

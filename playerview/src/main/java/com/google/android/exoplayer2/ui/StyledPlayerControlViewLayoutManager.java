@@ -20,9 +20,6 @@ import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
-import android.content.res.Resources;
-import android.util.DisplayMetrics;
-import android.util.TypedValue;
 import android.view.View;
 import android.view.View.OnLayoutChangeListener;
 import android.view.ViewGroup;
@@ -62,19 +59,19 @@ final class StyledPlayerControlViewLayoutManager {
     @Nullable
     private final ViewGroup bottomBar;
     @Nullable
-    private final ViewGroup minimalControls = null;
+    private final ViewGroup minimalControls;
     @Nullable
     private final ViewGroup basicControls;
     @Nullable
-    private final ViewGroup extraControls = null;
+    private final ViewGroup extraControls;
     @Nullable
-    private final ViewGroup extraControlsScrollView = null;
+    private final ViewGroup extraControlsScrollView;
     @Nullable
     private final ViewGroup timeView;
     @Nullable
     private final View timeBar;
     @Nullable
-    private final View overflowShowButton = null;
+    private final View overflowShowButton;
 
     private final AnimatorSet hideMainBarAnimator;
     private final AnimatorSet hideProgressBarAnimator;
@@ -110,35 +107,23 @@ final class StyledPlayerControlViewLayoutManager {
         uxState = UX_STATE_ALL_VISIBLE;
         shownButtons = new ArrayList<>();
 
-        // Relating to Center View
-        controlsBackground = styledPlayerControlView.findViewWithTag(ViewIds.exoControlsBackground);
-        centerControls = styledPlayerControlView.findViewWithTag(ViewIds.exoCenterControls);
+        controlsBackground = styledPlayerControlView.findViewById(R.id.exo_controls_background);
+        centerControls = styledPlayerControlView.findViewById(R.id.exo_center_controls);
+        minimalControls = styledPlayerControlView.findViewById(R.id.exo_minimal_controls);
+        bottomBar = styledPlayerControlView.findViewById(R.id.exo_bottom_bar);
 
-        // Relating to Minimal Layout
-//    minimalControls = styledPlayerControlView.findViewById(R.id.exo_minimal_controls);
+        timeView = styledPlayerControlView.findViewById(R.id.exo_time);
+        timeBar = styledPlayerControlView.findViewById(R.id.exo_progress);
 
-        // Relating to Bottom Bar View
-//    bottomBar = styledPlayerControlView.findViewById(R.id.exo_bottom_bar);
-        bottomBar = styledPlayerControlView.findViewWithTag(ViewIds.exoBottomBar);
-
-        // Relating to Bottom Bar Left View
-//    timeView = styledPlayerControlView.findViewById(R.id.exo_time);
-//    timeBar = styledPlayerControlView.findViewById(R.id.exo_progress);
-        timeView = styledPlayerControlView.findViewWithTag(ViewIds.exoTimeView);
-        timeBar = styledPlayerControlView.findViewWithTag(ViewIds.exoTimeBar);
-
-        // Relating to Bottom Bar Right View
-        basicControls = styledPlayerControlView.findViewWithTag(ViewIds.basicControls);
-//    basicControls = styledPlayerControlView.findViewById(R.id.exo_basic_controls);
-//    extraControls = styledPlayerControlView.findViewById(R.id.exo_extra_controls);
-//    extraControlsScrollView =
-//        styledPlayerControlView.findViewById(R.id.exo_extra_controls_scroll_view);
-//    overflowShowButton = styledPlayerControlView.findViewById(R.id.exo_overflow_show);
-//    View overflowHideButton = styledPlayerControlView.findViewById(R.id.exo_overflow_hide);
-//    if (overflowShowButton != null && overflowHideButton != null) {
-//      overflowShowButton.setOnClickListener(this::onOverflowButtonClick);
-//      overflowHideButton.setOnClickListener(this::onOverflowButtonClick);
-//    }
+        basicControls = styledPlayerControlView.findViewById(R.id.exo_basic_controls);
+        extraControls = styledPlayerControlView.findViewById(R.id.exo_extra_controls);
+        extraControlsScrollView = styledPlayerControlView.findViewById(R.id.exo_extra_controls_scroll_view);
+        overflowShowButton = styledPlayerControlView.findViewById(R.id.exo_overflow_show);
+        View overflowHideButton = styledPlayerControlView.findViewById(R.id.exo_overflow_hide);
+        if (overflowShowButton != null && overflowHideButton != null) {
+            overflowShowButton.setOnClickListener(this::onOverflowButtonClick);
+            overflowHideButton.setOnClickListener(this::onOverflowButtonClick);
+        }
 
         ValueAnimator fadeOutAnimator = ValueAnimator.ofFloat(1.0f, 0.0f);
         fadeOutAnimator.setInterpolator(new LinearInterpolator());
@@ -212,8 +197,8 @@ final class StyledPlayerControlViewLayoutManager {
                     }
                 });
 
-        float translationYForProgressBar = UiHelper.convertToDp(58);
-        float translationYForNoBars = UiHelper.convertToDp(60);
+        float translationYForProgressBar = ViewParamsKt.getDp(58);
+        float translationYForNoBars = ViewParamsKt.getDp(60);
 
         hideMainBarAnimator = new AnimatorSet();
         hideMainBarAnimator.setDuration(DURATION_FOR_HIDING_ANIMATION_MS);
@@ -492,14 +477,14 @@ final class StyledPlayerControlViewLayoutManager {
         return button != null && shownButtons.contains(button);
     }
 
-//  private void onOverflowButtonClick(View v) {
-//    resetHideCallbacks();
-//    if (v.getId() == R.id.exo_overflow_show) {
-//      overflowShowAnimator.start();
-//    } else if (v.getId() == R.id.exo_overflow_hide) {
-//      overflowHideAnimator.start();
-//    }
-//  }
+  private void onOverflowButtonClick(View v) {
+    resetHideCallbacks();
+    if (v.getId() == R.id.exo_overflow_show) {
+      overflowShowAnimator.start();
+    } else if (v.getId() == R.id.exo_overflow_hide) {
+      overflowHideAnimator.start();
+    }
+  }
 
     private void setUxState(int uxState) {
         int prevUxState = this.uxState;
@@ -647,7 +632,7 @@ final class StyledPlayerControlViewLayoutManager {
 
         if (timeBar != null) {
             MarginLayoutParams timeBarParams = (MarginLayoutParams) timeBar.getLayoutParams();
-            int timeBarMarginBottom = UiHelper.convertToDp(52);
+            int timeBarMarginBottom = ViewParamsKt.getDp(52);
             timeBarParams.bottomMargin = (isMinimalMode ? 0 : timeBarMarginBottom);
             timeBar.setLayoutParams(timeBarParams);
             if (timeBar instanceof DefaultTimeBar) {

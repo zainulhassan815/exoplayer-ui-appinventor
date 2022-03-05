@@ -1,6 +1,7 @@
 package com.dreamers.videoplayer
 
 import android.content.pm.ActivityInfo
+import android.graphics.drawable.Drawable
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -10,6 +11,7 @@ import android.view.WindowInsets
 import android.view.WindowInsetsController
 import android.widget.FrameLayout
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.res.ResourcesCompat
 import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
@@ -17,17 +19,20 @@ import com.google.android.exoplayer2.SimpleExoPlayer
 import com.google.android.exoplayer2.metadata.Metadata
 import com.google.android.exoplayer2.text.Cue
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector
+import com.google.android.exoplayer2.ui.PlayerStyle
 import com.google.android.exoplayer2.ui.StyledPlayerControlView
 import com.google.android.exoplayer2.ui.StyledPlayerView
 import com.google.android.exoplayer2.ui.TrackSelectionDialogBuilder
 import com.google.android.exoplayer2.util.MimeTypes
+import com.google.android.exoplayer2.util.RepeatModeUtil
 import com.google.android.exoplayer2.util.Util
 
-class MainActivity : AppCompatActivity(), StyledPlayerControlView.OnFullScreenModeChangedListener, StyledPlayerControlView.OnSettingsWindowDismissListener {
+class MainActivity : AppCompatActivity(), StyledPlayerControlView.OnFullScreenModeChangedListener,
+    StyledPlayerControlView.OnSettingsWindowDismissListener {
 
     private var playerView: StyledPlayerView? = null
     private var videoUrl =
-        "https://cdn2.ninjatv.co/live/smil:asports.auto.smil/playlist.m3u8"
+        "https://multiplatform-f.akamaihd.net/i/multi/will/bunny/big_buck_bunny_,640x360_400,640x360_700,640x360_1000,950x540_1500,.f4v.csmil/master.m3u8"
     private val music = "https://storage.googleapis.com/exoplayer-test-media-0/Jazz_In_Paris.mp3"
     private val subtitles =
         "https://raw.githubusercontent.com/benwfreed/test-subtitles/master/mmvo72166981784.vtt"
@@ -45,16 +50,21 @@ class MainActivity : AppCompatActivity(), StyledPlayerControlView.OnFullScreenMo
         Log.v(LOG_TAG, "OnCreate")
         trackSelector = DefaultTrackSelector(this)
 
-        val container: FrameLayout = findViewById(R.id.video_container)
-        playerView = StyledPlayerView(this)
-        playerView?.setShowVideoSettingsButton(true)
-        playerView?.setVideoSettingsButtonListener { showTrackSelectionDialog() }
-
-        container.addView(
-            playerView,
-            0
-        )
+        playerView = StyledPlayerView(
+            this,
+            PlayerStyle(
+                showShuffleButton = true,
+                repeatToggleModes = RepeatModeUtil.REPEAT_TOGGLE_MODE_ONE + RepeatModeUtil.REPEAT_TOGGLE_MODE_ALL,
+            )
+        ).apply {
+            setVideoSettingsButtonListener { showTrackSelectionDialog() }
+        }
+        findViewById<FrameLayout>(R.id.video_container).addView(playerView)
         initializePlayer()
+    }
+
+    private fun drawable(id: Int): Drawable? {
+        return ResourcesCompat.getDrawable(resources, id, theme)
     }
 
     private fun showTrackSelectionDialog() {
@@ -65,7 +75,8 @@ class MainActivity : AppCompatActivity(), StyledPlayerControlView.OnFullScreenMo
                 "Select Video Quality",
                 player?.trackSelector as DefaultTrackSelector,
                 renderIndex ?: 0
-            ).setAllowAdaptiveSelections(false).setShowDisableOption(true).setTrackNameProvider { format -> "${format.width} x ${format.height}" } .build()
+            ).setAllowAdaptiveSelections(false).setShowDisableOption(true)
+                .setTrackNameProvider { format -> "${format.width} x ${format.height}" }.build()
 
             dialog.show()
         }

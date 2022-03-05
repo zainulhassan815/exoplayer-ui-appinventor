@@ -21,8 +21,6 @@ import static com.google.android.exoplayer2.util.Assertions.checkNotNull;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.res.ColorStateList;
-import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
@@ -31,11 +29,7 @@ import android.graphics.RectF;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.opengl.GLSurfaceView;
-import android.os.Build;
 import android.os.Looper;
-import android.util.DisplayMetrics;
-import android.util.TypedValue;
-import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
@@ -44,7 +38,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.IntDef;
@@ -319,8 +312,6 @@ public class StyledPlayerView extends FrameLayout implements AdViewProvider {
     private boolean useArtwork;
     @Nullable
     private Drawable defaultArtwork;
-//    private @ShowBuffering
-//    int showBuffering;
     private int showBuffering;
     private boolean keepContentOnPlayerReset;
     @Nullable
@@ -335,18 +326,23 @@ public class StyledPlayerView extends FrameLayout implements AdViewProvider {
     private boolean isTouching;
 
     public StyledPlayerView(Context context) {
-        this(context, TimeBarAttributes.createDefault());
+        this(context, new PlayerStyle());
     }
 
-    public StyledPlayerView(Context context, TimeBarAttributes timeBarAttributes) {
-        this(context, timeBarAttributes, PlayerAttributes.createDefault());
+    public StyledPlayerView(Context context, PlayerStyle playerStyle) {
+        this(context, playerStyle, new ProgressBarStyle());
     }
 
-    public StyledPlayerView(Context context, TimeBarAttributes timeBarAttributes, PlayerAttributes playerAttributes) {
+    public StyledPlayerView(Context context, ProgressBarStyle progressBarStyle) {
+        this(context, new PlayerStyle(), progressBarStyle);
+    }
+
+    public StyledPlayerView(Context context, PlayerStyle playerStyle, ProgressBarStyle progressBarStyle) {
         super(context, null, 0);
 
         componentListener = new ComponentListener();
-        setBackgroundColor(Color.parseColor("#000000"));
+        setBackgroundColor(Color.BLACK);
+        setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
 
         if (isInEditMode()) {
             contentFrame = null;
@@ -365,72 +361,36 @@ public class StyledPlayerView extends FrameLayout implements AdViewProvider {
             return;
         }
 
-        int whiteWithAlpha7 = Color.parseColor("#B3ffffff");
-        int errorMessageBg = Color.parseColor("#AA000000");
+        boolean useArtwork = playerStyle.getUseArtWork();
+        boolean useController = playerStyle.getUseController();
+        int surfaceType = playerStyle.getSurfaceType();
+        int resizeMode = playerStyle.getResizeMode();
+        int controllerShowTimeoutMs = playerStyle.getControlsTimeoutMs();
+        boolean controllerHideOnTouch = playerStyle.getHideOnTouch();
+        boolean controllerAutoShow = playerStyle.getAutoShowController();
+        boolean controllerHideDuringAds = playerStyle.getHideDuringAds();
+        int showBuffering = playerStyle.getShowBuffering();
 
-        int shutterColor = Color.parseColor("#000000");
-        boolean useArtwork = playerAttributes.getUseArtWork();
-        boolean useController = playerAttributes.getUseController();
-        int surfaceType = playerAttributes.getSurfaceType();
-        int resizeMode = playerAttributes.getResizeMode();
-        int controllerShowTimeoutMs = playerAttributes.getControllerTimeout();
-        boolean controllerHideOnTouch = playerAttributes.getHideOnTouch();
-        boolean controllerAutoShow = playerAttributes.getAutoShowController();
-        boolean controllerHideDuringAds = playerAttributes.getHideDuringAds();
-        int showBuffering = playerAttributes.getShowBuffering();
+        PlayerUiKt.styledPlayer(this, playerStyle, progressBarStyle);
+        contentFrame = findViewById(R.id.exo_content_frame);
+        shutterView = findViewById(R.id.exo_shutter);
+        artworkView = findViewById(R.id.exo_artwork);
+        subtitleView = findViewById(R.id.exo_subtitles);
+        bufferingView = findViewById(R.id.exo_buffering);
+        errorMessageView = findViewById(R.id.exo_error_message);
+        adOverlayFrameLayout = findViewById(R.id.exo_ad_overlay);
+        overlayFrameLayout = findViewById(R.id.exo_overlay);
+        controller = findViewById(R.id.exo_controller);
 
-        setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+        this.useArtwork = useArtwork;
+        this.showBuffering = showBuffering;
 
-        // Create an aspect ratio layout as content frame
-        contentFrame = new AspectRatioFrameLayout(context);
-        contentFrame.setLayoutParams(centeredParams());
-
-        // Shutter View
-        shutterView = new View(context);
-        shutterView.setLayoutParams(defaultParams());
-
-        // ArtWork view (Thumbnail Image)
-        artworkView = new ImageView(context);
-        artworkView.setLayoutParams(centeredParams());
-        artworkView.setScaleType(ImageView.ScaleType.FIT_XY);
-
-        // Subtitle view
-        subtitleView = new SubtitleView(context);
-        subtitleView.setLayoutParams(defaultParams());
-
-        // Buffering view (Circular Progress)
-        bufferingView = new ProgressBar(context);
-        bufferingView.setLayoutParams(new LayoutParams(convertToDp(65),convertToDp(65), Gravity.CENTER));
-        ((ProgressBar) bufferingView).setIndeterminate(true);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            ((ProgressBar) bufferingView).setIndeterminateTintList(ColorStateList.valueOf(whiteWithAlpha7));
-        }
-
-        // Error Message View (Textview)
-        errorMessageView = new TextView(context);
-        errorMessageView.setLayoutParams(centeredParams());
-        int padding = convertToDp(16f);
-        errorMessageView.setPadding(padding, padding, padding, padding);
-        errorMessageView.setBackgroundColor(errorMessageBg);
-
-        // Add items to content frame (AspectRatioFrameLayout)
-        contentFrame.addView(shutterView);
-        contentFrame.addView(artworkView);
-        contentFrame.addView(subtitleView);
-        contentFrame.addView(bufferingView);
-        contentFrame.addView(errorMessageView);
-
-        setDescendantFocusability(FOCUS_AFTER_DESCENDANTS);
-
-        // Content frame.
         setResizeModeRaw(contentFrame, resizeMode);
-
-        // Shutter view.
-        shutterView.setBackgroundColor(shutterColor);
+        setDescendantFocusability(FOCUS_AFTER_DESCENDANTS);
 
         // Create a surface view and insert it into the content frame, if there is one.
         boolean surfaceViewIgnoresVideoAspectRatio = false;
-        if (contentFrame != null && surfaceType != SURFACE_TYPE_NONE) {
+        if (surfaceType != SURFACE_TYPE_NONE) {
             ViewGroup.LayoutParams params =
                     new ViewGroup.LayoutParams(
                             ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
@@ -461,32 +421,6 @@ public class StyledPlayerView extends FrameLayout implements AdViewProvider {
         }
         this.surfaceViewIgnoresVideoAspectRatio = surfaceViewIgnoresVideoAspectRatio;
 
-        // Ad overlay frame layout.
-        adOverlayFrameLayout = new FrameLayout(context);
-        adOverlayFrameLayout.setLayoutParams(defaultParams());
-
-        // Overlay frame layout.
-        overlayFrameLayout = new FrameLayout(context);
-        overlayFrameLayout.setLayoutParams(defaultParams());
-
-        // Artwork view.
-        this.useArtwork = useArtwork;
-
-        // Subtitle view.
-        subtitleView.setUserDefaultStyle();
-        subtitleView.setUserDefaultTextSize();
-
-        // Buffering view.
-        bufferingView.setVisibility(View.GONE);
-        this.showBuffering = showBuffering;
-
-        // Error message view.
-        errorMessageView.setVisibility(View.GONE);
-
-        // Playback control view.
-        controller = new StyledPlayerControlView(context, timeBarAttributes, playerAttributes);
-        controller.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
-
         this.controllerShowTimeoutMs = controllerShowTimeoutMs;
         this.controllerHideOnTouch = controllerHideOnTouch;
         this.controllerAutoShow = controllerAutoShow;
@@ -495,11 +429,6 @@ public class StyledPlayerView extends FrameLayout implements AdViewProvider {
         controller.hideImmediately();
         controller.addVisibilityListener(/* listener= */ componentListener);
         updateContentDescription();
-
-        // Add UI Elements to root view
-        addView(contentFrame);
-        addView(controller);
-
     }
 
     /**
@@ -556,19 +485,6 @@ public class StyledPlayerView extends FrameLayout implements AdViewProvider {
                     pivotY);
         }
         textureView.setTransform(transformMatrix);
-    }
-
-    private int convertToDp(float dip) {
-        DisplayMetrics displayMetric = Resources.getSystem().getDisplayMetrics();
-        return (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dip, displayMetric);
-    }
-
-    private LayoutParams defaultParams() {
-        return new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
-    }
-
-    private LayoutParams centeredParams() {
-        return new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT, Gravity.CENTER);
     }
 
     /**
@@ -995,7 +911,6 @@ public class StyledPlayerView extends FrameLayout implements AdViewProvider {
      * Sets the {@link StyledPlayerControlView.OnSettingsWindowDismissListener}.
      *
      * @param listener The listener to be notified when settings window is dismissed.
-     *
      */
     public void setControllerOnSettingsWindowDismissListener(
             @Nullable StyledPlayerControlView.OnSettingsWindowDismissListener listener) {
