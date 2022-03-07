@@ -344,7 +344,7 @@ final class StyledPlayerControlViewLayoutManager {
 
                     @Override
                     public void onAnimationEnd(Animator animation) {
-                        if (extraControlsScrollView != null) {
+                        if (null != extraControlsScrollView) {
                             extraControlsScrollView.setVisibility(View.INVISIBLE);
                         }
                     }
@@ -477,14 +477,14 @@ final class StyledPlayerControlViewLayoutManager {
         return button != null && shownButtons.contains(button);
     }
 
-  private void onOverflowButtonClick(View v) {
-    resetHideCallbacks();
-    if (v.getId() == R.id.exo_overflow_show) {
-      overflowShowAnimator.start();
-    } else if (v.getId() == R.id.exo_overflow_hide) {
-      overflowHideAnimator.start();
+    private void onOverflowButtonClick(View v) {
+        resetHideCallbacks();
+        if (v.getId() == R.id.exo_overflow_show) {
+            overflowShowAnimator.start();
+        } else if (v.getId() == R.id.exo_overflow_hide) {
+            overflowHideAnimator.start();
+        }
     }
-  }
 
     private void setUxState(int uxState) {
         int prevUxState = this.uxState;
@@ -653,12 +653,12 @@ final class StyledPlayerControlViewLayoutManager {
     }
 
     private boolean shouldHideInMinimalMode(View button) {
-        String tag = (String) button.getTag();
-        return (tag == ViewIds.exoBottomBar
-                || tag == ViewIds.previousButton
-                || tag == ViewIds.nextButton
-                || tag == ViewIds.rewindButton
-                || tag == ViewIds.forwardButton);
+        int id = button.getId();
+        return (id == R.id.exo_bottom_bar
+                || id == R.id.exo_prev
+                || id == R.id.exo_next
+                || id == R.id.exo_rew
+                || id == R.id.exo_ffwd);
     }
 
     private void onLayoutWidthChanged() {
