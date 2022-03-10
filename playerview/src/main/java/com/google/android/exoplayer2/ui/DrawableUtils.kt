@@ -8,10 +8,20 @@ import java.io.FileInputStream
 import java.io.InputStream
 
 const val LOG_TAG = "ExoplayerUI"
+const val REPL_FORM_CLASS = "com.google.appinventor.components.runtime.ReplForm"
 
-fun Context.getIcon(fileNameRes: Int, debugMode: Boolean): Drawable? {
+private val Context.debugMode: Boolean
+    get() {
+        return try {
+            Class.forName(REPL_FORM_CLASS).isAssignableFrom(this::class.java)
+        } catch (e: ClassNotFoundException) {
+            false
+        }
+    }
+
+fun Context.getIcon(fileNameRes: Int): Drawable? {
     try {
-        getAssetStream(getString(fileNameRes), debugMode).apply {
+        getAssetStream(getString(fileNameRes)).apply {
             val drawable = Drawable.createFromStream(this, null)
             close()
             return drawable
@@ -22,7 +32,20 @@ fun Context.getIcon(fileNameRes: Int, debugMode: Boolean): Drawable? {
     return null
 }
 
-fun Context.getAssetStream(file: String, debugMode: Boolean): InputStream {
+fun Context.getIcon(fileName: String): Drawable? {
+    try {
+        getAssetStream(fileName).apply {
+            val drawable = Drawable.createFromStream(this, null)
+            close()
+            return drawable
+        }
+    } catch (e: Exception) {
+        Log.v(LOG_TAG, "getDrawable : Error = $e")
+    }
+    return null
+}
+
+fun Context.getAssetStream(file: String): InputStream {
     val activityName = javaClass.simpleName
     return when {
         debugMode -> assets.open(file)
@@ -38,7 +61,7 @@ fun Context.getAssetStream(file: String, debugMode: Boolean): InputStream {
             val path = if (Build.VERSION.SDK_INT >= 29) {
                 getExternalFilesDir(null).toString() + "/assets/" + file
             } else {
-                getExternalFilesDir(null).toString() + "/AppInventor/assets/" + file
+                getExternalFilesDir(null).toString() + "/assets/" + file
             }
             FileInputStream(path)
         }

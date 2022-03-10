@@ -368,9 +368,8 @@ public class PlayerControlView extends FrameLayout {
         showShuffleButton = playerStyle.getShowShuffleButton();
         int rewindMs = playerStyle.getRewindMs();
         int fastForwardMs = playerStyle.getFastForwardMs();
-        boolean debugMode = playerStyle.isDebugMode();
 
-        final List<MediaButton> buttons = PlayerUiKt.playerViewButtons(context, debugMode);
+        final List<MediaButton> buttons = PlayerUiKt.playerViewButtons(context);
         PlayerUiKt.simpleControls(this, progressBarStyle, buttons);
 
         playButton = findViewById(R.id.exo_play);
@@ -415,11 +414,11 @@ public class PlayerControlView extends FrameLayout {
         shuffleButton.setOnClickListener(componentListener);
         repeatToggleButton.setOnClickListener(componentListener);
 
-        repeatOffButtonDrawable = UtilKt.getIcon(context, R.string.exo_controls_repeat_off, debugMode);
-        repeatOneButtonDrawable = UtilKt.getIcon(context, R.string.exo_controls_repeat_one, debugMode);
-        repeatAllButtonDrawable = UtilKt.getIcon(context, R.string.exo_controls_repeat_all, debugMode);
-        shuffleOnButtonDrawable = UtilKt.getIcon(context, R.string.exo_controls_shuffle_on, debugMode);
-        shuffleOffButtonDrawable = UtilKt.getIcon(context, R.string.exo_controls_shuffle_off, debugMode);
+        repeatOffButtonDrawable = DrawableUtilsKt.getIcon(context, R.string.exo_controls_repeat_off);
+        repeatOneButtonDrawable = DrawableUtilsKt.getIcon(context, R.string.exo_controls_repeat_one);
+        repeatAllButtonDrawable = DrawableUtilsKt.getIcon(context, R.string.exo_controls_repeat_all);
+        shuffleOnButtonDrawable = DrawableUtilsKt.getIcon(context, R.string.exo_controls_shuffle_on);
+        shuffleOffButtonDrawable = DrawableUtilsKt.getIcon(context, R.string.exo_controls_shuffle_off);
 
     }
 

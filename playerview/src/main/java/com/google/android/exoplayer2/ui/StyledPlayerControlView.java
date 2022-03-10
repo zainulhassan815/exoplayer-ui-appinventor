@@ -461,7 +461,6 @@ public class StyledPlayerControlView extends FrameLayout {
     private final View playbackSpeedButton;
     @Nullable
     private final View audioTrackButton;
-    private final boolean debugMode;
 
     public StyledPlayerControlView(Context context) {
         this(context, new PlayerStyle());
@@ -486,14 +485,13 @@ public class StyledPlayerControlView extends FrameLayout {
         boolean showShuffleButton = playerStyle.getShowShuffleButton();
         boolean showSubtitleButton = playerStyle.getShowSubtitleButton();
         boolean animationEnabled = playerStyle.getAnimationEnabled();
-        debugMode = playerStyle.isDebugMode();
         boolean showFullscreenButton = playerStyle.getShowFullscreenButton();
         boolean showVideoSettingsButton = playerStyle.getShowVideoSettingsButton();
 
-        final List<MediaButton> bottomButtons = PlayerUiKt.bottomButtons(context, debugMode);
-        final List<MediaButton> centerButtons = PlayerUiKt.centerButtons(context, debugMode);
-        final List<MediaButton> overflowButton = PlayerUiKt.overflowButtons(context, debugMode);
-        final List<MediaButton> minimalButtons = PlayerUiKt.minimalButtons(context, debugMode);
+        final List<MediaButton> bottomButtons = PlayerUiKt.bottomButtons(context);
+        final List<MediaButton> centerButtons = PlayerUiKt.centerButtons(context);
+        final List<MediaButton> overflowButton = PlayerUiKt.overflowButtons(context);
+        final List<MediaButton> minimalButtons = PlayerUiKt.minimalButtons(context);
         PlayerUiKt.styledControls(this,
                 progressBarStyle,
                 bottomButtons,
@@ -560,9 +558,9 @@ public class StyledPlayerControlView extends FrameLayout {
         Drawable[] settingIcons = new Drawable[2];
         String[] settingTexts = new String[2];
         settingTexts[SETTINGS_PLAYBACK_SPEED_POSITION] = "Speed";
-        settingIcons[SETTINGS_PLAYBACK_SPEED_POSITION] = UtilKt.getIcon(context, R.string.exo_controls_settings, debugMode);
+        settingIcons[SETTINGS_PLAYBACK_SPEED_POSITION] = DrawableUtilsKt.getIcon(context, R.string.exo_controls_settings);
         settingTexts[SETTINGS_AUDIO_TRACK_SELECTION_POSITION] = "Audio";
-        settingIcons[SETTINGS_AUDIO_TRACK_SELECTION_POSITION] = UtilKt.getIcon(context, R.string.exo_controls_audiotrack, debugMode);
+        settingIcons[SETTINGS_AUDIO_TRACK_SELECTION_POSITION] = DrawableUtilsKt.getIcon(context, R.string.exo_controls_audiotrack);
         settingsAdapter = new SettingsAdapter(settingTexts, settingIcons);
         settingsWindowMargin = ViewParamsKt.getDp(8);
         settingsView = new RecyclerView(context);
@@ -585,17 +583,17 @@ public class StyledPlayerControlView extends FrameLayout {
         audioTrackSelectionAdapter = new AudioTrackSelectionAdapter();
         playbackSpeedAdapter = new PlaybackSpeedAdapter(speedOptions, speedOptionsInto100);
 
-        playButtonDrawable = UtilKt.getIcon(context, R.string.exo_controls_play, debugMode);
-        pauseButtonDrawable = UtilKt.getIcon(context, R.string.exo_controls_pause, debugMode);
-        subtitleOnButtonDrawable = UtilKt.getIcon(context, R.string.exo_controls_subtitle_on, debugMode);
-        subtitleOffButtonDrawable = UtilKt.getIcon(context, R.string.exo_controls_subtitle_off, debugMode);
-        fullScreenExitDrawable = UtilKt.getIcon(context, R.string.exo_controls_fullscreen_exit, debugMode);
-        fullScreenEnterDrawable = UtilKt.getIcon(context, R.string.exo_controls_fullscreen_enter, debugMode);
-        repeatOffButtonDrawable = UtilKt.getIcon(context, R.string.exo_controls_repeat_off, debugMode);
-        repeatOneButtonDrawable = UtilKt.getIcon(context, R.string.exo_controls_repeat_one, debugMode);
-        repeatAllButtonDrawable = UtilKt.getIcon(context, R.string.exo_controls_repeat_all, debugMode);
-        shuffleOnButtonDrawable = UtilKt.getIcon(context, R.string.exo_controls_shuffle_on, debugMode);
-        shuffleOffButtonDrawable = UtilKt.getIcon(context, R.string.exo_controls_shuffle_off, debugMode);
+        playButtonDrawable = DrawableUtilsKt.getIcon(context, R.string.exo_controls_play);
+        pauseButtonDrawable = DrawableUtilsKt.getIcon(context, R.string.exo_controls_pause);
+        subtitleOnButtonDrawable = DrawableUtilsKt.getIcon(context, R.string.exo_controls_subtitle_on);
+        subtitleOffButtonDrawable = DrawableUtilsKt.getIcon(context, R.string.exo_controls_subtitle_off);
+        fullScreenExitDrawable = DrawableUtilsKt.getIcon(context, R.string.exo_controls_fullscreen_exit);
+        fullScreenEnterDrawable = DrawableUtilsKt.getIcon(context, R.string.exo_controls_fullscreen_enter);
+        repeatOffButtonDrawable = DrawableUtilsKt.getIcon(context, R.string.exo_controls_repeat_off);
+        repeatOneButtonDrawable = DrawableUtilsKt.getIcon(context, R.string.exo_controls_repeat_one);
+        repeatAllButtonDrawable = DrawableUtilsKt.getIcon(context, R.string.exo_controls_repeat_all);
+        shuffleOnButtonDrawable = DrawableUtilsKt.getIcon(context, R.string.exo_controls_shuffle_on);
+        shuffleOffButtonDrawable = DrawableUtilsKt.getIcon(context, R.string.exo_controls_shuffle_off);
 
         fullScreenExitContentDescription = "Exit fullscreen";
         fullScreenEnterContentDescription = "Enter fullscreen";
@@ -1959,20 +1957,20 @@ public class StyledPlayerControlView extends FrameLayout {
     private final class PlaybackSpeedAdapter extends RecyclerView.Adapter<SubSettingViewHolder> {
 
         private final String[] playbackSpeedTexts;
-        private final int[] playbackSpeedsMultBy100;
+        private final int[] playbackSpeedsTime100;
         private int selectedIndex;
 
-        public PlaybackSpeedAdapter(String[] playbackSpeedTexts, int[] playbackSpeedsMultBy100) {
+        public PlaybackSpeedAdapter(String[] playbackSpeedTexts, int[] playbackSpeedsTime100) {
             this.playbackSpeedTexts = playbackSpeedTexts;
-            this.playbackSpeedsMultBy100 = playbackSpeedsMultBy100;
+            this.playbackSpeedsTime100 = playbackSpeedsTime100;
         }
 
         public void updateSelectedIndex(float playbackSpeed) {
-            int currentSpeedMultBy100 = Math.round(playbackSpeed * 100);
+            int currentSpeedTime100 = Math.round(playbackSpeed * 100);
             int closestMatchIndex = 0;
             int closestMatchDifference = Integer.MAX_VALUE;
-            for (int i = 0; i < playbackSpeedsMultBy100.length; i++) {
-                int difference = Math.abs(currentSpeedMultBy100 - playbackSpeedsMultBy100[i]);
+            for (int i = 0; i < playbackSpeedsTime100.length; i++) {
+                int difference = Math.abs(currentSpeedTime100 - playbackSpeedsTime100[i]);
                 if (difference < closestMatchDifference) {
                     closestMatchIndex = i;
                     closestMatchDifference = difference;
@@ -1981,12 +1979,14 @@ public class StyledPlayerControlView extends FrameLayout {
             selectedIndex = closestMatchIndex;
         }
 
-        public String getSelectedText() { return playbackSpeedTexts[selectedIndex]; }
+        public String getSelectedText() {
+            return playbackSpeedTexts[selectedIndex];
+        }
 
         @NonNull
         @Override
         public SubSettingViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            final View view = PlayerUiKt.settingsSubListItem(parent.getContext(),debugMode);
+            final View view = PlayerUiKt.settingsSubListItem(parent.getContext());
             return new SubSettingViewHolder(view);
         }
 
@@ -1999,7 +1999,7 @@ public class StyledPlayerControlView extends FrameLayout {
             holder.itemView.setOnClickListener(
                     v -> {
                         if (position != selectedIndex) {
-                            float speed = playbackSpeedsMultBy100[position] / 100.0f;
+                            float speed = playbackSpeedsTime100[position] / 100.0f;
                             setPlaybackSpeed(speed);
                         }
                         settingsWindow.dismiss();
@@ -2183,7 +2183,7 @@ public class StyledPlayerControlView extends FrameLayout {
         @NonNull
         @Override
         public SubSettingViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            final View view = PlayerUiKt.settingsSubListItem(parent.getContext(), debugMode);
+            final View view = PlayerUiKt.settingsSubListItem(parent.getContext());
             return new SubSettingViewHolder(view);
         }
 

@@ -20,7 +20,6 @@ import com.google.android.exoplayer2.util.RepeatModeUtil
  * behaviour and appearance.
  */
 data class PlayerStyle(
-    val isDebugMode: Boolean = false,
     val surfaceType: Int = PlayerView.SURFACE_TYPE_SURFACE_VIEW,
     val useArtWork: Boolean = true,
     val resizeMode: Int = AspectRatioFrameLayout.RESIZE_MODE_FIT,
@@ -104,90 +103,86 @@ object ExoColors {
 }
 
 object ExoDimensions {
-    val SETTINGS_WIDTH = 150.dp
-    val SETTINGS_HEIGHT = 52.dp
-    val SETTINGS_ICON_SIZE = 24.dp
-    const val SETTINGS_TEXT_SIZE = 24
+    const val SETTINGS_WIDTH = 150
+    const val SETTINGS_HEIGHT = 52
+    const val SETTINGS_ICON_SIZE = 24
     const val SETTINGS_MAIN_TEXT_SIZE = 14f
     const val SETTINGS_SUB_TEXT_SIZE = 12f
-    val SETTINGS_OFFSET = 8.dp
 
-    val ICON_SIZE = 52.dp
-    val ICON_MARGIN_X = 5.dp
-    val ICON_PADDING = 2.dp
-    const val ICON_TEXT_SIZE = 9f
-    val ICON_PADDING_BOTTOM = 18.dp
+    const val ICON_SIZE = 52
+    const val ICON_MARGIN_X = 5
+    const val ICON_PADDING = 2
 
-    val SMALL_ICON_SIZE = 48.dp
-    val SMALL_ICON_MARGIN_X = 2.dp
-    val SMALL_ICON_PADDING = 12.dp
+    const val SMALL_ICON_SIZE = 48
+    const val SMALL_ICON_MARGIN_X = 2
+    const val SMALL_ICON_PADDING = 12
 
-    val STYLED_PROGRESS_BAR_HEIGHT = 2.dp
-    val STYLED_PROGRESS_ENABLED_THUMB_SIZE = 10.dp
-    val STYLED_PROGRESS_DRAGGED_THUMB_SIZE = 14.dp
-    val STYLED_PROGRESS_LAYOUT_HEIGHT = 48.dp
-    val STYLED_PROGRESS_TOUCH_TARGET_HEIGHT = 48.dp
-    val STYLED_PROGRESS_MARGIN_BOTTOM = 52.dp
-    val STYLED_BOTTOM_BAR_HEIGHT = 60.dp
-    val STYLED_BOTTOM_BAR_TIME_PADDING = 10.dp
-    val STYLED_BOTTOM_BAR_MARGIN_TOP = 10.dp
-    val STYLED_CONTROLS_PADDING = 24.dp
-    val STYLED_MINIMAL_CONTROLS_MARGIN_BOTTOM = 4.dp
+    const val STYLED_PROGRESS_BAR_HEIGHT = 2
+    const val STYLED_PROGRESS_ENABLED_THUMB_SIZE = 10
+    const val STYLED_PROGRESS_DRAGGED_THUMB_SIZE = 14
+    const val STYLED_PROGRESS_LAYOUT_HEIGHT = 48
+    const val STYLED_PROGRESS_TOUCH_TARGET_HEIGHT = 48
+    const val STYLED_PROGRESS_MARGIN_BOTTOM = 52
+    const val STYLED_BOTTOM_BAR_HEIGHT = 60
+    const val STYLED_BOTTOM_BAR_TIME_PADDING = 10
+    const val STYLED_BOTTOM_BAR_MARGIN_TOP = 10
+    const val STYLED_CONTROLS_PADDING = 24
+    const val STYLED_MINIMAL_CONTROLS_MARGIN_BOTTOM = 4
 
-    val ERROR_HEIGHT = 32.dp
-    val ERROR_MARGIN_BOTTOM = 64.dp
+    const val ERROR_HEIGHT = 32
+    const val ERROR_MARGIN_BOTTOM = 64
     const val ERROR_TEXT_SIZE = 14f
-    val ERROR_TEXT_PADDING_X = 12.dp
-    val ERROR_TEXT_PADDING_Y = 4.dp
+    const val ERROR_TEXT_PADDING_X = 12
+    const val ERROR_TEXT_PADDING_Y = 4
 }
 
 /**
  * List of [MediaButton]s for [PlayerView].
  */
-fun Context.playerViewButtons(debugMode: Boolean = false) = listOf(
+fun Context.playerViewButtons() = listOf(
     MediaButton(
         R.id.exo_prev,
-        getIcon(R.string.exo_controls_previous, debugMode),
+        getIcon(R.string.exo_controls_previous),
         "Previous"
     ),
     MediaButton(
         R.id.exo_repeat_toggle,
-        getIcon(R.string.exo_controls_repeat_off, debugMode),
+        getIcon(R.string.exo_controls_repeat_off),
         "Repeat"
     ),
     MediaButton(
         R.id.exo_rew,
-        getIcon(R.string.exo_controls_rewind, debugMode),
+        getIcon(R.string.exo_controls_rewind),
         "Rewind"
     ),
     MediaButton(
         R.id.exo_play,
-        getIcon(R.string.exo_controls_play, debugMode),
+        getIcon(R.string.exo_controls_play),
         "Play"
     ),
     MediaButton(
         R.id.exo_pause,
-        getIcon(R.string.exo_controls_pause, debugMode),
+        getIcon(R.string.exo_controls_pause),
         "Pause"
     ),
     MediaButton(
         R.id.exo_ffwd,
-        getIcon(R.string.exo_controls_fastforward, debugMode),
+        getIcon(R.string.exo_controls_fastforward),
         "Forward"
     ),
     MediaButton(
         R.id.exo_shuffle,
-        getIcon(R.string.exo_controls_shuffle_off, debugMode),
+        getIcon(R.string.exo_controls_shuffle_off),
         "Shuffle playlist"
     ),
     MediaButton(
         R.id.exo_next,
-        getIcon(R.string.exo_controls_next, debugMode),
+        getIcon(R.string.exo_controls_next),
         "Next"
     ),
     MediaButton(
         R.id.exo_vr,
-        getIcon(R.string.exo_controls_vr, debugMode),
+        getIcon(R.string.exo_controls_vr),
         "VR mode"
     ),
 )
@@ -195,30 +190,30 @@ fun Context.playerViewButtons(debugMode: Boolean = false) = listOf(
 /**
  * List of Center [MediaButton]s for [StyledPlayerControlView].
  */
-fun Context.centerButtons(debugMode: Boolean = false) = listOf(
+fun Context.centerButtons() = listOf(
     MediaButton(
         R.id.exo_prev,
-        getIcon(R.string.exo_controls_previous, debugMode),
+        getIcon(R.string.exo_controls_previous),
         "Previous"
     ),
     MediaButton(
         R.id.exo_rew,
-        getIcon(R.string.exo_controls_rewind, debugMode),
+        getIcon(R.string.exo_controls_rewind),
         "Rewind"
     ),
     MediaButton(
         R.id.exo_play_pause,
-        getIcon(R.string.exo_controls_play, debugMode),
+        getIcon(R.string.exo_controls_play),
         "Play"
     ),
     MediaButton(
         R.id.exo_ffwd,
-        getIcon(R.string.exo_controls_fastforward, debugMode),
+        getIcon(R.string.exo_controls_fastforward),
         "Forward"
     ),
     MediaButton(
         R.id.exo_next,
-        getIcon(R.string.exo_controls_next, debugMode),
+        getIcon(R.string.exo_controls_next),
         "Next"
     ),
 )
@@ -226,45 +221,45 @@ fun Context.centerButtons(debugMode: Boolean = false) = listOf(
 /**
  * List of Bottom [MediaButton]s for [StyledPlayerControlView].
  */
-fun Context.bottomButtons(debugMode: Boolean = false) = listOf(
+fun Context.bottomButtons() = listOf(
     MediaButton(
         R.id.exo_vr,
-        getIcon(R.string.exo_controls_vr, debugMode),
+        getIcon(R.string.exo_controls_vr),
         "VR mode"
     ),
     MediaButton(
         R.id.exo_shuffle,
-        getIcon(R.string.exo_controls_shuffle_off, debugMode),
+        getIcon(R.string.exo_controls_shuffle_off),
         "Shuffle playlist"
     ),
     MediaButton(
         R.id.exo_repeat_toggle,
-        getIcon(R.string.exo_controls_repeat_off, debugMode),
+        getIcon(R.string.exo_controls_repeat_off),
         "Repeat"
     ),
     MediaButton(
         R.id.exo_subtitle,
-        getIcon(R.string.exo_controls_subtitle_off, debugMode),
+        getIcon(R.string.exo_controls_subtitle_off),
         "Toggle subtitles"
     ),
     MediaButton(
         R.id.exo_settings,
-        getIcon(R.string.exo_controls_settings, debugMode),
+        getIcon(R.string.exo_controls_settings),
         "Open settings"
     ),
     MediaButton(
         R.id.exo_video_settings,
-        getIcon(R.string.exo_controls_video_settings, debugMode),
+        getIcon(R.string.exo_controls_video_settings),
         "Open videos settings"
     ),
     MediaButton(
         R.id.exo_fullscreen,
-        getIcon(R.string.exo_controls_fullscreen_enter, debugMode),
+        getIcon(R.string.exo_controls_fullscreen_enter),
         "Toggle fullscreen"
     ),
     MediaButton(
         R.id.exo_overflow_show,
-        getIcon(R.string.exo_controls_overflow_show, debugMode),
+        getIcon(R.string.exo_controls_overflow_show),
         "Show additional settings"
     ),
 )
@@ -272,10 +267,10 @@ fun Context.bottomButtons(debugMode: Boolean = false) = listOf(
 /**
  * List of Overflow [MediaButton]s for [StyledPlayerControlView].
  */
-fun Context.overflowButtons(debugMode: Boolean = false) = listOf(
+fun Context.overflowButtons() = listOf(
     MediaButton(
         R.id.exo_overflow_hide,
-        getIcon(R.string.exo_controls_overflow_hide, debugMode),
+        getIcon(R.string.exo_controls_overflow_hide),
         "Hide additional settings"
     ),
 )
@@ -283,10 +278,10 @@ fun Context.overflowButtons(debugMode: Boolean = false) = listOf(
 /**
  * List of Minimal [MediaButton]s for [StyledPlayerControlView].
  */
-fun Context.minimalButtons(debugMode: Boolean = false) = listOf(
+fun Context.minimalButtons() = listOf(
     MediaButton(
         R.id.exo_minimal_fullscreen,
-        getIcon(R.string.exo_controls_fullscreen_enter, debugMode),
+        getIcon(R.string.exo_controls_fullscreen_enter),
         "Toggle fullscreen"
     ),
 )
@@ -296,12 +291,12 @@ fun settingsListItem(
 ): LinearLayout {
     return context.listTile(
         style = ListTileStyle(
-            leadingSize = ExoDimensions.SETTINGS_ICON_SIZE,
+            leadingSize = ExoDimensions.SETTINGS_ICON_SIZE.dp,
             height = ViewGroup.LayoutParams.WRAP_CONTENT,
         ),
         modifier = {
-            minimumHeight = ExoDimensions.SETTINGS_HEIGHT
-            minimumWidth = ExoDimensions.SETTINGS_WIDTH
+            minimumHeight = ExoDimensions.SETTINGS_HEIGHT.dp
+            minimumWidth = ExoDimensions.SETTINGS_WIDTH.dp
         },
         leading = {
             image {
@@ -335,7 +330,6 @@ fun settingsListItem(
 
 fun settingsSubListItem(
     context: Context,
-    debugMode: Boolean = false,
 ): LinearLayout {
     return context.listTile(
         style = ListTileStyle(
@@ -349,7 +343,7 @@ fun settingsSubListItem(
         leading = {
             image {
                 id = R.id.exo_settings_item_icon
-                setImageDrawable(context.getIcon(R.string.exo_controls_check, debugMode))
+                setImageDrawable(context.getIcon(R.string.exo_controls_check))
                 visibility = View.INVISIBLE
             }
         },
@@ -400,7 +394,8 @@ fun simpleControls(
     }
     val controller = root.column(
         modifier = {
-            layoutParams = frameLayoutParams(matchParent, wrapContent, Gravity.BOTTOM.or(Gravity.CENTER))
+            layoutParams =
+                frameLayoutParams(matchParent, wrapContent, Gravity.BOTTOM.or(Gravity.CENTER))
             layoutDirection = View.LAYOUT_DIRECTION_LTR
             background = GradientDrawable(
                 GradientDrawable.Orientation.BOTTOM_TOP,
@@ -514,24 +509,24 @@ fun styledControls(
         applySelectableBackground(true)
         scaleType = ImageView.ScaleType.FIT_XY
         layoutParams = linearLayoutParams(
-            ExoDimensions.SMALL_ICON_SIZE,
-            ExoDimensions.SMALL_ICON_SIZE,
+            ExoDimensions.SMALL_ICON_SIZE.dp,
+            ExoDimensions.SMALL_ICON_SIZE.dp,
             Gravity.CENTER_HORIZONTAL
         ) {
-            horizontalMargin = ExoDimensions.SMALL_ICON_MARGIN_X
-            padding(ExoDimensions.SMALL_ICON_PADDING)
+            horizontalMargin = ExoDimensions.SMALL_ICON_MARGIN_X.dp
+            padding(ExoDimensions.SMALL_ICON_PADDING.dp)
         }
     }
     val centerButtonStyles: ImageButton.() -> Unit = {
         applySelectableBackground(true)
         scaleType = ImageView.ScaleType.FIT_XY
         layoutParams = linearLayoutParams(
-            ExoDimensions.ICON_SIZE,
-            ExoDimensions.ICON_SIZE,
+            ExoDimensions.ICON_SIZE.dp,
+            ExoDimensions.ICON_SIZE.dp,
             Gravity.CENTER_HORIZONTAL
         ) {
-            horizontalMargin = ExoDimensions.ICON_MARGIN_X
-            padding(ExoDimensions.ICON_PADDING)
+            horizontalMargin = ExoDimensions.ICON_MARGIN_X.dp
+            padding(ExoDimensions.ICON_PADDING.dp)
         }
     }
 
@@ -561,10 +556,10 @@ fun styledControls(
                     id = R.id.exo_bottom_bar
                     layoutParams = frameLayoutParams(
                         matchParent,
-                        ExoDimensions.STYLED_BOTTOM_BAR_HEIGHT,
+                        ExoDimensions.STYLED_BOTTOM_BAR_HEIGHT.dp,
                         Gravity.BOTTOM,
                     ) {
-                        setMargins(ExoDimensions.STYLED_BOTTOM_BAR_MARGIN_TOP, 0, 0, 0)
+                        setMargins(ExoDimensions.STYLED_BOTTOM_BAR_MARGIN_TOP.dp, 0, 0, 0)
                         background = ExoColors.BOTTOM_BAR_BG
                         layoutDirection = View.LAYOUT_DIRECTION_LTR
                     }
@@ -579,7 +574,7 @@ fun styledControls(
                                 gravity = Gravity.CENTER_VERTICAL.or(Gravity.START)
                             )
                             layoutDirection = View.LAYOUT_DIRECTION_LTR
-                            padding(ExoDimensions.STYLED_BOTTOM_BAR_TIME_PADDING)
+                            padding(ExoDimensions.STYLED_BOTTOM_BAR_TIME_PADDING.dp)
                         }
                     ) {
                         listOf(
@@ -669,7 +664,7 @@ fun styledControls(
                         wrapContent,
                         Gravity.BOTTOM
                     ) {
-                        setMargins(0, 0, 0, ExoDimensions.STYLED_PROGRESS_MARGIN_BOTTOM)
+                        setMargins(0, 0, 0, ExoDimensions.STYLED_PROGRESS_MARGIN_BOTTOM.dp)
                     }
                 }
             ),
@@ -681,7 +676,7 @@ fun styledControls(
                     layoutParams = frameLayoutParams(
                         gravity = Gravity.BOTTOM.or(Gravity.END)
                     ) {
-                        setMargins(0, 0, 0, ExoDimensions.STYLED_MINIMAL_CONTROLS_MARGIN_BOTTOM)
+                        setMargins(0, 0, 0, ExoDimensions.STYLED_MINIMAL_CONTROLS_MARGIN_BOTTOM.dp)
                     }
                     gravity = Gravity.CENTER_VERTICAL
                     layoutDirection = View.LAYOUT_DIRECTION_LTR
@@ -706,7 +701,7 @@ fun styledControls(
                     layoutParams = frameLayoutParams(gravity = Gravity.CENTER)
                     setBackgroundColor(Color.TRANSPARENT)
                     gravity = Gravity.CENTER
-                    padding(ExoDimensions.STYLED_CONTROLS_PADDING)
+                    padding(ExoDimensions.STYLED_CONTROLS_PADDING.dp)
                 }
             ) {
                 centerControls.map {
@@ -769,13 +764,16 @@ fun playerBase(
                 id = R.id.exo_error_message
                 layoutParams = frameLayoutParams(
                     matchParent,
-                    ExoDimensions.ERROR_HEIGHT,
+                    ExoDimensions.ERROR_HEIGHT.dp,
                     Gravity.CENTER
                 ) {
-                    setMargins(0, 0, 0, ExoDimensions.STYLED_PROGRESS_MARGIN_BOTTOM)
+                    setMargins(0, 0, 0, ExoDimensions.STYLED_PROGRESS_MARGIN_BOTTOM.dp)
                 }
                 gravity = Gravity.CENTER
-                padding(ExoDimensions.ERROR_TEXT_PADDING_X, ExoDimensions.ERROR_TEXT_PADDING_Y)
+                padding(
+                    ExoDimensions.ERROR_TEXT_PADDING_X.dp,
+                    ExoDimensions.ERROR_TEXT_PADDING_Y.dp
+                )
                 visibility = View.GONE
                 setBackgroundColor(ExoColors.ERROR_MESSAGE_BG)
                 setTextSize(TypedValue.COMPLEX_UNIT_SP, ExoDimensions.ERROR_TEXT_SIZE)
