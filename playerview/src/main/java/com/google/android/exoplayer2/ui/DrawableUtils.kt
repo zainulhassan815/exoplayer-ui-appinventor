@@ -2,7 +2,6 @@ package com.google.android.exoplayer2.ui
 
 import android.content.Context
 import android.graphics.drawable.Drawable
-import android.os.Build
 import android.util.Log
 import java.io.FileInputStream
 import java.io.InputStream
@@ -19,19 +18,6 @@ private val Context.debugMode: Boolean
         }
     }
 
-fun Context.getIcon(fileNameRes: Int): Drawable? {
-    try {
-        getAssetStream(getString(fileNameRes)).apply {
-            val drawable = Drawable.createFromStream(this, null)
-            close()
-            return drawable
-        }
-    } catch (e: Exception) {
-        Log.v(LOG_TAG, "getDrawable : Error = $e")
-    }
-    return null
-}
-
 fun Context.getIcon(fileName: String): Drawable? {
     try {
         getAssetStream(fileName).apply {
@@ -40,29 +26,15 @@ fun Context.getIcon(fileName: String): Drawable? {
             return drawable
         }
     } catch (e: Exception) {
-        Log.v(LOG_TAG, "getDrawable : Error = $e")
+        Log.v(LOG_TAG, "Error ($e) occurred while loading drawable. DebugMode = $debugMode")
     }
     return null
 }
 
 fun Context.getAssetStream(file: String): InputStream {
-    val activityName = javaClass.simpleName
     return when {
-        debugMode -> assets.open(file)
-        activityName.contains("makeroid") -> {
-            val path = if (Build.VERSION.SDK_INT >= 29) {
-                getExternalFilesDir(null).toString() + "/assets/" + file
-            } else {
-                "/storage/emulated/0/Kodular/assets/$file"
-            }
-            FileInputStream(path)
-        }
-        activityName.contains("appinventor") -> {
-            val path = if (Build.VERSION.SDK_INT >= 29) {
-                getExternalFilesDir(null).toString() + "/assets/" + file
-            } else {
-                getExternalFilesDir(null).toString() + "/assets/" + file
-            }
+        debugMode -> {
+            val path = getExternalFilesDir(null).toString() + "/assets/" + file
             FileInputStream(path)
         }
         else -> assets.open(file)

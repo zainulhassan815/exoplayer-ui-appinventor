@@ -414,11 +414,11 @@ public class PlayerControlView extends FrameLayout {
         shuffleButton.setOnClickListener(componentListener);
         repeatToggleButton.setOnClickListener(componentListener);
 
-        repeatOffButtonDrawable = DrawableUtilsKt.getIcon(context, R.string.exo_controls_repeat_off);
-        repeatOneButtonDrawable = DrawableUtilsKt.getIcon(context, R.string.exo_controls_repeat_one);
-        repeatAllButtonDrawable = DrawableUtilsKt.getIcon(context, R.string.exo_controls_repeat_all);
-        shuffleOnButtonDrawable = DrawableUtilsKt.getIcon(context, R.string.exo_controls_shuffle_on);
-        shuffleOffButtonDrawable = DrawableUtilsKt.getIcon(context, R.string.exo_controls_shuffle_off);
+        repeatOffButtonDrawable = DrawableUtilsKt.getIcon(context, Icons.exo_controls_repeat_off);
+        repeatOneButtonDrawable = DrawableUtilsKt.getIcon(context, Icons.exo_controls_repeat_one);
+        repeatAllButtonDrawable = DrawableUtilsKt.getIcon(context, Icons.exo_controls_repeat_all);
+        shuffleOnButtonDrawable = DrawableUtilsKt.getIcon(context, Icons.exo_controls_shuffle_on);
+        shuffleOffButtonDrawable = DrawableUtilsKt.getIcon(context, Icons.exo_controls_shuffle_off);
 
     }
 

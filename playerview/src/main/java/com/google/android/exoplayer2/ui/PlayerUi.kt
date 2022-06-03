@@ -92,7 +92,6 @@ object UiConstants {
 object ExoColors {
     val WHITE = Color.parseColor("#ffffff")
     val WHITE_ALPHA_70 = Color.parseColor("#B3ffffff")
-    val BLACK_ALPHA_70 = Color.parseColor("#B3000000")
     val BLACK_ALPHA_80 = Color.parseColor("#CC000000")
     val BLACK_ALPHA_60 = Color.parseColor("#98000000")
     val ERROR_MESSAGE_BG = Color.parseColor("#80808080")
@@ -136,53 +135,79 @@ object ExoDimensions {
     const val ERROR_TEXT_PADDING_Y = 4
 }
 
+object Icons {
+    const val exo_controls_play = "ic_play.png"
+    const val exo_controls_pause = "ic_pause.png"
+    const val exo_controls_next = "ic_next.png"
+    const val exo_controls_previous = "ic_previous.png"
+    const val exo_controls_fastforward = "ic_fast_forward.png"
+    const val exo_controls_rewind = "ic_rewind.png"
+    const val exo_controls_repeat_all = "ic_repeat_all.png"
+    const val exo_controls_repeat_off = "ic_repeat_off.png"
+    const val exo_controls_repeat_one = "ic_repeat_one.png"
+    const val exo_controls_shuffle_off = "ic_shuffle_on.png"
+    const val exo_controls_shuffle_on = "ic_shuffle_off.png"
+    const val exo_controls_fullscreen_enter = "ic_fullscreen_enter.png"
+    const val exo_controls_fullscreen_exit = "ic_fullscreen_exit.png"
+    const val exo_controls_subtitle_off = "ic_subtitle_off.png"
+    const val exo_controls_subtitle_on = "ic_subtitle_on.png"
+    const val exo_controls_settings = "ic_settings.png"
+    const val exo_controls_check = "ic_check.png"
+    const val exo_controls_audiotrack = "ic_audio_track.png"
+    const val exo_controls_video_settings = "ic_video_settings.png"
+    const val exo_controls_speed = "ic_speed.png"
+    const val exo_controls_overflow_hide = "ic_overflow_hide.png"
+    const val exo_controls_overflow_show = "ic_overflow_show.png"
+    const val exo_controls_vr = "ic_vr.png"
+}
+
 /**
  * List of [MediaButton]s for [PlayerView].
  */
 fun Context.playerViewButtons() = listOf(
     MediaButton(
         R.id.exo_prev,
-        getIcon(R.string.exo_controls_previous),
+        getIcon(Icons.exo_controls_previous),
         "Previous"
     ),
     MediaButton(
         R.id.exo_repeat_toggle,
-        getIcon(R.string.exo_controls_repeat_off),
+        getIcon(Icons.exo_controls_repeat_off),
         "Repeat"
     ),
     MediaButton(
         R.id.exo_rew,
-        getIcon(R.string.exo_controls_rewind),
+        getIcon(Icons.exo_controls_rewind),
         "Rewind"
     ),
     MediaButton(
         R.id.exo_play,
-        getIcon(R.string.exo_controls_play),
+        getIcon(Icons.exo_controls_play),
         "Play"
     ),
     MediaButton(
         R.id.exo_pause,
-        getIcon(R.string.exo_controls_pause),
+        getIcon(Icons.exo_controls_pause),
         "Pause"
     ),
     MediaButton(
         R.id.exo_ffwd,
-        getIcon(R.string.exo_controls_fastforward),
+        getIcon(Icons.exo_controls_fastforward),
         "Forward"
     ),
     MediaButton(
         R.id.exo_shuffle,
-        getIcon(R.string.exo_controls_shuffle_off),
+        getIcon(Icons.exo_controls_shuffle_off),
         "Shuffle playlist"
     ),
     MediaButton(
         R.id.exo_next,
-        getIcon(R.string.exo_controls_next),
+        getIcon(Icons.exo_controls_next),
         "Next"
     ),
     MediaButton(
         R.id.exo_vr,
-        getIcon(R.string.exo_controls_vr),
+        getIcon(Icons.exo_controls_vr),
         "VR mode"
     ),
 )
@@ -193,27 +218,27 @@ fun Context.playerViewButtons() = listOf(
 fun Context.centerButtons() = listOf(
     MediaButton(
         R.id.exo_prev,
-        getIcon(R.string.exo_controls_previous),
+        getIcon(Icons.exo_controls_previous),
         "Previous"
     ),
     MediaButton(
         R.id.exo_rew,
-        getIcon(R.string.exo_controls_rewind),
+        getIcon(Icons.exo_controls_rewind),
         "Rewind"
     ),
     MediaButton(
         R.id.exo_play_pause,
-        getIcon(R.string.exo_controls_play),
+        getIcon(Icons.exo_controls_play),
         "Play"
     ),
     MediaButton(
         R.id.exo_ffwd,
-        getIcon(R.string.exo_controls_fastforward),
+        getIcon(Icons.exo_controls_fastforward),
         "Forward"
     ),
     MediaButton(
         R.id.exo_next,
-        getIcon(R.string.exo_controls_next),
+        getIcon(Icons.exo_controls_next),
         "Next"
     ),
 )
@@ -224,42 +249,42 @@ fun Context.centerButtons() = listOf(
 fun Context.bottomButtons() = listOf(
     MediaButton(
         R.id.exo_vr,
-        getIcon(R.string.exo_controls_vr),
+        getIcon(Icons.exo_controls_vr),
         "VR mode"
     ),
     MediaButton(
         R.id.exo_shuffle,
-        getIcon(R.string.exo_controls_shuffle_off),
+        getIcon(Icons.exo_controls_shuffle_off),
         "Shuffle playlist"
     ),
     MediaButton(
         R.id.exo_repeat_toggle,
-        getIcon(R.string.exo_controls_repeat_off),
+        getIcon(Icons.exo_controls_repeat_off),
         "Repeat"
     ),
     MediaButton(
         R.id.exo_subtitle,
-        getIcon(R.string.exo_controls_subtitle_off),
+        getIcon(Icons.exo_controls_subtitle_off),
         "Toggle subtitles"
     ),
     MediaButton(
         R.id.exo_settings,
-        getIcon(R.string.exo_controls_settings),
+        getIcon(Icons.exo_controls_settings),
         "Open settings"
     ),
     MediaButton(
         R.id.exo_video_settings,
-        getIcon(R.string.exo_controls_video_settings),
+        getIcon(Icons.exo_controls_video_settings),
         "Open videos settings"
     ),
     MediaButton(
         R.id.exo_fullscreen,
-        getIcon(R.string.exo_controls_fullscreen_enter),
+        getIcon(Icons.exo_controls_fullscreen_enter),
         "Toggle fullscreen"
     ),
     MediaButton(
         R.id.exo_overflow_show,
-        getIcon(R.string.exo_controls_overflow_show),
+        getIcon(Icons.exo_controls_overflow_show),
         "Show additional settings"
     ),
 )
@@ -270,7 +295,7 @@ fun Context.bottomButtons() = listOf(
 fun Context.overflowButtons() = listOf(
     MediaButton(
         R.id.exo_overflow_hide,
-        getIcon(R.string.exo_controls_overflow_hide),
+        getIcon(Icons.exo_controls_overflow_hide),
         "Hide additional settings"
     ),
 )
@@ -281,7 +306,7 @@ fun Context.overflowButtons() = listOf(
 fun Context.minimalButtons() = listOf(
     MediaButton(
         R.id.exo_minimal_fullscreen,
-        getIcon(R.string.exo_controls_fullscreen_enter),
+        getIcon(Icons.exo_controls_fullscreen_enter),
         "Toggle fullscreen"
     ),
 )
@@ -333,17 +358,17 @@ fun settingsSubListItem(
 ): LinearLayout {
     return context.listTile(
         style = ListTileStyle(
-            leadingSize = ExoDimensions.SETTINGS_ICON_SIZE,
+            leadingSize = ExoDimensions.SETTINGS_ICON_SIZE.dp,
             height = ViewGroup.LayoutParams.WRAP_CONTENT,
         ),
         modifier = {
             minimumHeight = 48.dp
-            minimumWidth = ExoDimensions.SETTINGS_WIDTH
+            minimumWidth = ExoDimensions.SETTINGS_WIDTH.dp
         },
         leading = {
             image {
                 id = R.id.exo_settings_item_icon
-                setImageDrawable(context.getIcon(R.string.exo_controls_check))
+                setImageDrawable(context.getIcon(Icons.exo_controls_check))
                 visibility = View.INVISIBLE
             }
         },

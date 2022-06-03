@@ -558,9 +558,9 @@ public class StyledPlayerControlView extends FrameLayout {
         Drawable[] settingIcons = new Drawable[2];
         String[] settingTexts = new String[2];
         settingTexts[SETTINGS_PLAYBACK_SPEED_POSITION] = "Speed";
-        settingIcons[SETTINGS_PLAYBACK_SPEED_POSITION] = DrawableUtilsKt.getIcon(context, R.string.exo_controls_settings);
+        settingIcons[SETTINGS_PLAYBACK_SPEED_POSITION] = DrawableUtilsKt.getIcon(context, Icons.exo_controls_settings);
         settingTexts[SETTINGS_AUDIO_TRACK_SELECTION_POSITION] = "Audio";
-        settingIcons[SETTINGS_AUDIO_TRACK_SELECTION_POSITION] = DrawableUtilsKt.getIcon(context, R.string.exo_controls_audiotrack);
+        settingIcons[SETTINGS_AUDIO_TRACK_SELECTION_POSITION] = DrawableUtilsKt.getIcon(context, Icons.exo_controls_audiotrack);
         settingsAdapter = new SettingsAdapter(settingTexts, settingIcons);
         settingsWindowMargin = ViewParamsKt.getDp(8);
         settingsView = new RecyclerView(context);
@@ -583,17 +583,17 @@ public class StyledPlayerControlView extends FrameLayout {
         audioTrackSelectionAdapter = new AudioTrackSelectionAdapter();
         playbackSpeedAdapter = new PlaybackSpeedAdapter(speedOptions, speedOptionsInto100);
 
-        playButtonDrawable = DrawableUtilsKt.getIcon(context, R.string.exo_controls_play);
-        pauseButtonDrawable = DrawableUtilsKt.getIcon(context, R.string.exo_controls_pause);
-        subtitleOnButtonDrawable = DrawableUtilsKt.getIcon(context, R.string.exo_controls_subtitle_on);
-        subtitleOffButtonDrawable = DrawableUtilsKt.getIcon(context, R.string.exo_controls_subtitle_off);
-        fullScreenExitDrawable = DrawableUtilsKt.getIcon(context, R.string.exo_controls_fullscreen_exit);
-        fullScreenEnterDrawable = DrawableUtilsKt.getIcon(context, R.string.exo_controls_fullscreen_enter);
-        repeatOffButtonDrawable = DrawableUtilsKt.getIcon(context, R.string.exo_controls_repeat_off);
-        repeatOneButtonDrawable = DrawableUtilsKt.getIcon(context, R.string.exo_controls_repeat_one);
-        repeatAllButtonDrawable = DrawableUtilsKt.getIcon(context, R.string.exo_controls_repeat_all);
-        shuffleOnButtonDrawable = DrawableUtilsKt.getIcon(context, R.string.exo_controls_shuffle_on);
-        shuffleOffButtonDrawable = DrawableUtilsKt.getIcon(context, R.string.exo_controls_shuffle_off);
+        playButtonDrawable = DrawableUtilsKt.getIcon(context, Icons.exo_controls_play);
+        pauseButtonDrawable = DrawableUtilsKt.getIcon(context, Icons.exo_controls_pause);
+        subtitleOnButtonDrawable = DrawableUtilsKt.getIcon(context, Icons.exo_controls_subtitle_on);
+        subtitleOffButtonDrawable = DrawableUtilsKt.getIcon(context, Icons.exo_controls_subtitle_off);
+        fullScreenExitDrawable = DrawableUtilsKt.getIcon(context, Icons.exo_controls_fullscreen_exit);
+        fullScreenEnterDrawable = DrawableUtilsKt.getIcon(context, Icons.exo_controls_fullscreen_enter);
+        repeatOffButtonDrawable = DrawableUtilsKt.getIcon(context, Icons.exo_controls_repeat_off);
+        repeatOneButtonDrawable = DrawableUtilsKt.getIcon(context, Icons.exo_controls_repeat_one);
+        repeatAllButtonDrawable = DrawableUtilsKt.getIcon(context, Icons.exo_controls_repeat_all);
+        shuffleOnButtonDrawable = DrawableUtilsKt.getIcon(context, Icons.exo_controls_shuffle_on);
+        shuffleOffButtonDrawable = DrawableUtilsKt.getIcon(context, Icons.exo_controls_shuffle_off);
 
         fullScreenExitContentDescription = "Exit fullscreen";
         fullScreenEnterContentDescription = "Enter fullscreen";
@@ -1950,7 +1950,7 @@ public class StyledPlayerControlView extends FrameLayout {
             mainTextView = itemView.findViewById(R.id.exo_settings_item_title);
             subTextView = itemView.findViewById(R.id.exo_settings_item_subtitle);
             iconView = itemView.findViewById(R.id.exo_settings_item_icon);
-            itemView.setOnClickListener(v -> onSettingViewClicked(getAbsoluteAdapterPosition()));
+            itemView.setOnClickListener(v -> onSettingViewClicked(getAdapterPosition()));
         }
     }
 
